@@ -61,7 +61,7 @@ $(CLIENT_EXEC): $(COMMON_OBJ) $(MOST_WANTED_OBJ) $(CLIENT_OBJ)
 
 # Clean
 clean:
-	rm -f $(COMMON_OBJ) $(NM_OBJ) $(SS_OBJ) $(CLIENT_OBJ) $(MOST_WANTED_OBJ) $(NM_EXEC) $(SS_EXEC) $(CLIENT_EXEC) .metadata
+	rm -f $(COMMON_OBJ) $(NM_OBJ) $(SS_OBJ) $(CLIENT_OBJ) $(MOST_WANTED_OBJ) $(NM_EXEC) $(SS_EXEC) $(CLIENT_EXEC) .metadata nfs.log
 	rm -rf most_wanted
 	mkdir most_wanted
 	cp Kalimba.mp3 most_wanted/

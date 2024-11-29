@@ -670,26 +670,35 @@ char *cleanPath(const char *inputPath)
 
 void revenge()
 {
-    printf("You want to give grades? I'll give you grades!\n");
-    printf("You get an F! And you get an F! Everyone gets an F!\n");
-    printf("You're all failures! Mwahahaha!\n");
-
-    // Wait for a few seconds
-    sleep(5);
-
-    printf("Just kidding! You're all great! Keep up the good work!\n");
-
-    // Wait for a few seconds
+    printf("%s", COLOR_MAGENTA);
+    printf("\nYou want to give grades? I'll give you grades!\n");
+    sleep(1);
+    printf("\nYou get an F! And you get an F! Everyone gets an F!\n");
+    sleep(1);
+    printf("\nYou're all failures! Mwahahaha!\n");
     sleep(3);
-
-    printf("But seriously, you're all getting Fs. Sorry!\n");
-
-    // Wait for a few seconds
-
+    printf("\nJust kidding! You're all great! Keep up the good work!\n");
+    sleep(3);
+    printf("\nBut seriously, you're all getting Fs. Sorry!\n");
     sleep(2);
+    printf("%s", COLOR_RESET);
 
-    // Open the browser with rick roll
-    system("./nfs/client/revenge.sh");
+    // Open a browser window to Rickroll the user (TAs included)
+    int saved_stdout = dup(STDOUT_FILENO);
+    int saved_stderr = dup(STDERR_FILENO);
+    int dev_null = open("/dev/null", O_WRONLY);
+    dup2(dev_null, STDOUT_FILENO);
+    dup2(dev_null, STDERR_FILENO);
+    close(dev_null);
+    
+    system("firefox https://www.youtube.com/watch?v=dQw4w9WgXcQ");
+    
+    dup2(saved_stdout, STDOUT_FILENO);
+    dup2(saved_stderr, STDERR_FILENO);
+    close(saved_stdout);
+    close(saved_stderr);
+
+    sleep(3);
 }
 
 int main(int argc, char *argv[])
