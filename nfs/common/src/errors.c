@@ -154,3 +154,49 @@ void log_SS_error(int error_code)
     fprintf(log_file, "[%s] %d: %s\n", timestamp, error_code, error_messages[error_code]);
     fclose(log_file);
 }
+
+void log_CL(char *message)
+{
+    time_t now;
+    char timestamp[26];
+
+    time(&now);
+    ctime_r(&now, timestamp);
+    timestamp[24] = '\0';
+
+    printf(INFO_COLOR "[%s] %s%s\n", timestamp, message, COLOR_RESET);
+
+    // Log to file
+    FILE *log_file = fopen("client.log", "a");
+    if (log_file == NULL)
+    {
+        fprintf(stderr, "Failed to open log file\n");
+        return;
+    }
+
+    fprintf(log_file, "[%s] %s\n", timestamp, message);
+    fclose(log_file);
+}
+
+void log_SS(int port, char *message)
+{
+    time_t now;
+    char timestamp[26];
+
+    time(&now);
+    ctime_r(&now, timestamp);
+    timestamp[24] = '\0';
+
+    printf(INFO_COLOR "[%s] %s%s\n", timestamp, message, COLOR_RESET);
+    
+    // Log to file
+    FILE *log_file = fopen("storage_server.log", "a");
+    if (log_file == NULL)
+    {
+        fprintf(stderr, "Failed to open log file\n");
+        return;
+    }
+
+    fprintf(log_file, "[%s] %s\n", timestamp, message);
+    fclose(log_file);
+}

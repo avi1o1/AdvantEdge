@@ -81,6 +81,7 @@ int streamAudioData(char *ip, int port, char *request)
         close(pipefd[1]);
         return -1;
     }
+    log_CL("Connected to storage server for streaming");
 
     // Send the streaming request
     if (send(new_sock, request, strlen(request), 0) == -1) {
@@ -89,6 +90,7 @@ int streamAudioData(char *ip, int port, char *request)
         close(pipefd[1]);
         return -1;
     }
+    log_CL("Sent streaming request to storage server");
 
     // Get acknowledgment from storage server
     char buffer[MINI_CHUNGUS] = {0};
@@ -105,6 +107,7 @@ int streamAudioData(char *ip, int port, char *request)
         close(pipefd[1]);
         return -1;
     }
+    log_CL("Received acknowledgment from storage server");
 
     printf("%sStreaming audio... Press Ctrl+C to stop%s\n", INFO_COLOR, COLOR_RESET);
 
@@ -122,6 +125,7 @@ int streamAudioData(char *ip, int port, char *request)
         // Check if we received the stop signal
         if (strcasecmp(buffer, "STOP") == 0)
         {
+            log_CL("Received stop signal from storage server");
             break;
         }
 
@@ -139,6 +143,7 @@ int streamAudioData(char *ip, int port, char *request)
     // Wait for mpv to finish
     int status;
     waitpid(pid, &status, 0);
+    log_CL("Streaming complete");
 
     return 0;
 }
@@ -160,15 +165,16 @@ int getActualData(char *ip, int port, char *request)
 
     // Connect to the new IP and port using a new socket
     int new_sock = connect_to_server(ip, port, CONNECTION_TIMEOUT);
+    log_CL("Connected to storage server for actual data");
 
     // Resending request to the storage server
-    // printf("Resending request to the storage server: %s\n", request);
     send(new_sock, request, strlen(request), 0);
+    log_CL("Sent request to storage server");
 
     // Receive acknowledgment from the storage server
     char buffer[MINI_CHUNGUS] = {0};
     recv(new_sock, buffer, MINI_CHUNGUS, 0);
-    // printf("Acknowledgement from SS: %s\n", buffer);
+    log_CL("Received acknowledgment from storage server: %s", buffer);
     if (strcasecmp(buffer, "S|ACK") != 0)
     {
         printf("%sError: Storage server did not acknowledge request%s\n", ERROR_COLOR, COLOR_RESET);
@@ -186,32 +192,38 @@ int getActualData(char *ip, int port, char *request)
             break;
         printf("%s\n", buffer);
     }
+    log_CL("Received data from storage server");
 
     // Close the new socket after use
     close(new_sock);
+    log_CL("Closed connection to storage server");
     return 0;
 }
 
 // Function to handle user commands
 int handleUserCommands(int sock)
 {
+    log_CL("Started handling user commands");
     // Initialize variables
     char buffer[MINI_CHUNGUS] = {0};
     char command[32] = {0};
     bool *isFile = (bool *)malloc(sizeof(bool));
     char srcPath[MAX_PATH_LENGTH] = {0};
     char dstPath[MAX_WRITE_LENGTH] = {0};
+    log_CL("Initialized command handling variables");
 
     // Main loop to handle user commands
     while (true)
     {
         displayCommands();
+        log_CL("Displayed available commands to user");
 
         if (fgets(buffer, MINI_CHUNGUS, stdin) == NULL)
         {
             log_CL_error(7);
             continue;
         }
+        log_CL("Read user input from stdin");
 
         buffer[strcspn(buffer, "\n")] = 0;
 
@@ -220,10 +232,12 @@ int handleUserCommands(int sock)
             log_CL_error(8);
             continue;
         }
+        log_CL("Parsed user input: %s %d %s %s", command, *isFile, srcPath, dstPath);
 
         // Check if the command is "GIVE":
         if (strcasecmp(command, "GIVE") == 0)
         {
+            log_CL("Executing revenge() function for GIVE GRADES command");
             revenge();
             continue;
         }
@@ -232,11 +246,13 @@ int handleUserCommands(int sock)
         memset(buffer, 0, sizeof(buffer));
         snprintf(buffer, MINI_CHUNGUS, "C|%s|%d|%s|%s", command, *isFile, srcPath, dstPath);
         char *saveRequest = strdup(buffer);
-        // printf("Sending request: %s\n", buffer);
+        log_CL("Prepared request buffer: %s", buffer);
         send(sock, buffer, strlen(buffer), 0);
+        log_CL("Sent request to naming server");
 
         if (strcasecmp(command, "WRITE") == 0 || strcasecmp(command, "PRIORITYWRITE") == 0)
         {
+            log_CL("Handling WRITE/PRIORITYWRITE request");
             printf("Enter the text to write to the file (write STOP to finish):\n");
             char data[BIG_CHUNGUS] = {0};
             char text[MINI_CHUNGUS] = {0};
@@ -249,10 +265,12 @@ int handleUserCommands(int sock)
                     log_CL_error(7);
                     break;
                 }
+                log_CL("Read input line: %s", text);
 
                 // Check if the user input is "STOP"
                 if (strncmp(text, "STOP", 4) == 0 && (text[4] == '\n' || text[4] == '\0'))
                 {
+                    log_CL("User requested to stop input");
                     printf("Stopping input...\n");
                     break;
                 }
@@ -263,6 +281,7 @@ int handleUserCommands(int sock)
                 {
                     strncpy(data + totalBytesRead, text, len);
                     totalBytesRead += len;
+                    log_CL("Added %zu bytes to data buffer", len);
                 }
                 else
                 {
@@ -271,7 +290,9 @@ int handleUserCommands(int sock)
                 }
             }
 
-            // Send the data to the naming server, after dividing it into chunks of MINI_CHUNGUS
+            log_CL("Total bytes read: %zu", totalBytesRead);
+
+            // Send the data to the naming server, after dividing it into chunks
             size_t totalBytesSent = 0;
             while (totalBytesSent < totalBytesRead)
             {
@@ -279,13 +300,14 @@ int handleUserCommands(int sock)
                 if (bytesToSend > MINI_CHUNGUS)
                     bytesToSend = MINI_CHUNGUS;
 
-                // printf("Sending data: %s\n", data + totalBytesSent);
                 send(sock, data + totalBytesSent, bytesToSend, 0);
+                log_CL("Sent chunk of %zu bytes", bytesToSend);
                 totalBytesSent += bytesToSend;
                 sleep(1);
             }
 
             send(sock, "STOP", strlen("STOP"), 0);
+            log_CL("Sent STOP signal to naming server");
 
             if (ferror(stdin))
             {
@@ -296,42 +318,47 @@ int handleUserCommands(int sock)
 
         if ((strcasecmp(buffer, "C|EXIT|1||") == 0) || (strcasecmp(buffer, "C|EXIT|0||") == 0))
         {
+            log_CL("Exit command received, shutting down client");
             printf("%sExiting...%s\n", INFO_COLOR, COLOR_RESET);
             return 0;
         }
 
-        // Get acknowledgment from the naming server (along with the IP and port of the server)
+        // Get acknowledgment from the naming server
         memset(buffer, 0, sizeof(buffer));
         recv(sock, buffer, MINI_CHUNGUS, 0);
-        // printf("Ip and port buffer: %s\n", buffer);
+        log_CL("Received response from naming server: %s", buffer);
 
         // Extract the IP and port of the server
         char *ip = strtok(buffer + 2, "|");
         int port = atoi(strtok(NULL, "|"));
+        log_CL("Extracted server details - IP: %s, Port: %d", ip, port);
 
-        printf("%d %d", ip, port);
         fflush(stdout);
 
         // Get the actual data from the new connection and display it
         if (port != NS_PORT || strcasecmp(ip, NS_IP) != 0)
         {
-
+            log_CL("Connecting to storage server at %s:%d", ip, port);
             int x = getActualData(ip, port, saveRequest);
             if (x == -1)
             {
+                log_CL_error(33);
                 printf("%sError: Could not get actual data from the storage server%s\n", ERROR_COLOR, COLOR_RESET);
                 continue;
             }
 
             memset(buffer, 0, sizeof(buffer));
             send(sock, "Done", strlen("Done"), 0);
+            log_CL("Sent completion signal to naming server");
         }
         else
         {
+            log_CL("Processing response from naming server directly");
             while (1)
             {
                 memset(buffer, 0, sizeof(buffer));
                 ssize_t bytes_received = recv(sock, buffer, MINI_CHUNGUS, 0);
+                log_CL("Received %zd bytes from naming server", bytes_received);
 
                 if (bytes_received > 0)
                 {
@@ -347,12 +374,10 @@ int handleUserCommands(int sock)
 
                 if (errno == EAGAIN || errno == EWOULDBLOCK || bytes_received == 0)
                 {
-                    // No data available right now
                     sleep(1);
                     continue;
                 }
 
-                // Actual error occurred
                 log_CL_error(16);
                 break;
             }
@@ -360,6 +385,7 @@ int handleUserCommands(int sock)
 
         if (strcasecmp(command, "WRITE") == 0)
         {
+            log_CL("Setting up write completion listener");
             int pid = fork();
             if (pid == 0)
             {
@@ -368,69 +394,68 @@ int handleUserCommands(int sock)
                     log_NM_error(0);
                     exit(EXIT_FAILURE);
                 }
-        
+                log_CL("Created temporary socket for write completion");
+
                 struct sockaddr_in completion_msg;
                 completion_msg.sin_family = AF_INET;
-                completion_msg.sin_port = htons(0); // Bind to any available port
+                completion_msg.sin_port = htons(0);
                 getActualIP(CL_IP);
                 completion_msg.sin_addr.s_addr = inet_addr(CL_IP);
-        
+                
                 if (bind(temp_sockfd, (struct sockaddr *)&completion_msg, sizeof(completion_msg)) < 0) {
                     log_CL_error(1);
                     close(temp_sockfd);
                     exit(EXIT_FAILURE);
                 }
-        
-                // Get the actual port number assigned
+                log_CL("Bound temporary socket successfully");
+
                 int complete_port = get_local_port(temp_sockfd);
-        
-                // Listen for incoming connections
+                log_CL("Got local port: %d", complete_port);
+
                 if (listen(temp_sockfd, SOMAXCONN) < 0) {
                     log_CL_error(2);
                     close(temp_sockfd);
                     exit(EXIT_FAILURE);
                 }
-        
+
                 char ip[16];
                 getActualIP(ip);
-        
+                log_CL("Listening on %s:%d for write completion", ip, complete_port);
+
                 char buffer[MINI_CHUNGUS] = {0};
                 snprintf(buffer, MINI_CHUNGUS, "C|WRITE|%s|%d", ip, complete_port);
                 send(sock, buffer, strlen(buffer), 0);
-                // printf("Waiting for WRITE completion message at %s:%d\n", ip, complete_port);
-        
+                log_CL("Sent write completion socket details to naming server");
+
                 while (true)
                 {
                     struct sockaddr_in tmp_addr;
                     socklen_t addr_len = sizeof(tmp_addr);
-                    int tmp_sock;
-        
-                    // Accept incoming connection
-                    if ((tmp_sock = accept(temp_sockfd, (struct sockaddr *)&tmp_addr, &addr_len)) < 0)
-                    {
+                    int tmp_sock = accept(temp_sockfd, (struct sockaddr *)&tmp_addr, &addr_len);
+                    
+                    if (tmp_sock < 0) {
                         log_CL_error(4);
                         continue;
                     }
-        
-                    // Receive the message
+                    log_CL("Accepted connection for write completion message");
+
                     sleep(1);
                     memset(buffer, 0, sizeof(buffer));
-                    if (recv(tmp_sock, buffer, sizeof(buffer) - 1, 0) <= 0)
-                    {
+                    if (recv(tmp_sock, buffer, sizeof(buffer) - 1, 0) <= 0) {
                         log_CL_error(6);
                         close(tmp_sock);
                         continue;
                     }
-        
-                    // Print the WRITE completion message
+                    log_CL("Received write completion message: %s", buffer);
+
                     if (strncmp(buffer, "Failed", 6))
                         printf("%s%s%s\n", COLOR_GREEN, buffer, COLOR_RESET);
                     else
                         printf("%s%s%s\n", ERROR_COLOR, buffer, COLOR_RESET);
+                    
                     close(tmp_sock);
                 }
-        
-                // Close the listening socket
+
                 close(temp_sockfd);
                 return 0;
             }
@@ -441,49 +466,49 @@ int handleUserCommands(int sock)
 
 int parseUserInput(char *input, char *command, bool *isFile, char *srcPath, char *dstPath)
 {
+    log_CL("Starting to parse user input: %s", input);
+    
     memset(command, 0, 32);
     memset(srcPath, 0, MAX_PATH_LENGTH);
-    memset(dstPath, 0, MAX_PATH_LENGTH);
+    memset(dstPath, 0, MAX_WRITE_LENGTH);
 
-    char *saveptr = NULL; // Save pointer for strtok_r
-
-    // Make a copy of input since strtok modifies the string
+    char *saveptr = NULL;
     char inputCopy[MINI_CHUNGUS];
     strncpy(inputCopy, input, MINI_CHUNGUS - 1);
     inputCopy[MINI_CHUNGUS - 1] = '\0';
 
-    // Parse the command (CREATE, COPY, DELETE, etc.)
     char *token = strtok_r(inputCopy, " ", &saveptr);
     if (token == NULL)
     {
-        return -1; // No command provided
+        log_CL_error(9);
+        return -1;
     }
-
-    // Handle special commands that don't need FILE/DIRECTORY argument
+    
     if (strcasecmp(token, "EXIT") == 0 || strcasecmp(token, "INFO") == 0 || strcasecmp(token, "GIVE") == 0)
     {
         strncpy(command, token, 31);
         command[31] = '\0';
+        log_CL("Processing special command: %s", command);
 
-        // Handle special cases for INFO, and GIVE GRADES
         if (strcasecmp(token, "INFO") == 0)
         {
-            *isFile = true; // Treat as file operation
-
-            // Get the path argument
+            *isFile = true;
             token = strtok_r(NULL, " ", &saveptr);
             if (token == NULL)
             {
+                log_CL_error(10);
                 return -1;
             }
             char *cleanedSrcPath = cleanPath(token);
             if (cleanedSrcPath == NULL)
             {
+                log_CL_error(11);
                 return -1;
             }
             strncpy(srcPath, cleanedSrcPath, MAX_PATH_LENGTH - 1);
             srcPath[MAX_PATH_LENGTH - 1] = '\0';
             free(cleanedSrcPath);
+            log_CL("INFO command parsed with path: %s", srcPath);
             return 0;
         }
         else if (strcasecmp(token, "GIVE") == 0)
@@ -491,115 +516,154 @@ int parseUserInput(char *input, char *command, bool *isFile, char *srcPath, char
             token = strtok_r(NULL, " ", &saveptr);
             if (token == NULL || strcasecmp(token, "GRADES") != 0)
             {
+                log_CL_error(12);
                 return -1;
             }
-            *isFile = true; // Default value
+            *isFile = true;
+            log_CL("GIVE GRADES command parsed");
             return 0;
         }
         else if (strcasecmp(token, "EXIT") == 0)
         {
-            *isFile = true; // Default value
+            *isFile = true;
+            log_CL("EXIT command parsed");
             return 0;
         }
     }
 
-    // Copy command to output parameter
     strncpy(command, token, 31);
     command[31] = '\0';
+    log_CL("Command extracted: %s", command);
 
-    // Parse FILE/DIRECTORY argument
     token = strtok_r(NULL, " ", &saveptr);
     if (token == NULL)
     {
-        return -1; // Missing FILE/DIRECTORY argument
+        log_CL_error(13);
+        return -1;
     }
 
-    // Handle STREAM, READ, and WRITE commands - must be FILE operations
     if (strcasecmp(command, "LIST") == 0)
     {
-        *isFile = false; // Placeholder value
+        *isFile = false;
+        log_CL("LIST command detected");
     }
-    else
-    if (strcasecmp(command, "STREAM") == 0 ||
-        strcasecmp(command, "READ") == 0 ||
-        strcasecmp(command, "WRITE") == 0 ||
-        strcasecmp(command, "PRIORITYWRITE") == 0)
+    else if (strcasecmp(command, "STREAM") == 0 ||
+             strcasecmp(command, "READ") == 0 ||
+             strcasecmp(command, "WRITE") == 0 ||
+             strcasecmp(command, "PRIORITYWRITE") == 0)
     {
         if (strcasecmp(token, "FILE") != 0)
-            return -1; // These operations must be FILE operations
-
+        {
+            log_CL_error(14);
+            return -1;
+        }
         *isFile = true;
+        log_CL("File operation command detected: %s", command);
     }
     else if (strcasecmp(token, "FILE") == 0)
+    {
         *isFile = true;
+        log_CL("File operation detected");
+    }
     else if (strcasecmp(token, "DIRECTORY") == 0)
+    {
         *isFile = false;
+        log_CL("Directory operation detected");
+    }
     else
-        return -1; // Invalid FILE/DIRECTORY argument
+    {
+        log_CL_error(15);
+        return -1;
+    }
 
-    // Parse and clean source path
     token = strtok_r(NULL, " ", &saveptr);
     if (token == NULL)
-        return -1; // Missing source path
+    {
+        log_CL_error(16);
+        return -1;
+    }
 
     char *cleanedSrcPath = cleanPath(token);
     if (cleanedSrcPath == NULL)
-        return -1; // Memory allocation failed
+    {
+        log_CL_error(17);
+        return -1;
+    }
 
     strncpy(srcPath, cleanedSrcPath, MAX_PATH_LENGTH - 1);
     srcPath[MAX_PATH_LENGTH - 1] = '\0';
     free(cleanedSrcPath);
+    log_CL("Source path cleaned: %s", srcPath);
 
-    // Handle commands that require a destination path (COPY, RENAME)
     if (strcasecmp(command, "COPY") == 0 || strcasecmp(command, "RENAME") == 0)
     {
         token = strtok_r(NULL, " ", &saveptr);
         if (token == NULL)
-            return -1; // Missing destination path
+        {
+            log_CL_error(18);
+            return -1;
+        }
 
-        // For RENAME, destination should not contain path separators
         if (strcasecmp(command, "RENAME") == 0 && strchr(token, '/') != NULL)
-            return -1; // RENAME destination should not contain path separators
+        {
+            log_CL_error(19);
+            return -1;
+        }
 
         char *cleanedDstPath;
         if (strcasecmp(command, "RENAME") == 0)
-            // For RENAME, just use the name as is (already checked for no '/')
+        {
             cleanedDstPath = strdup(token);
+            log_CL("RENAME destination: %s", token);
+        }
         else
-            // For COPY, clean the path
+        {
             cleanedDstPath = cleanPath(token);
+            log_CL("COPY destination cleaned: %s", cleanedDstPath);
+        }
 
         if (cleanedDstPath == NULL)
-            return -1; // Memory allocation failed
+        {
+            log_CL_error(20);
+            return -1;
+        }
         strncpy(dstPath, cleanedDstPath, MAX_PATH_LENGTH - 1);
         dstPath[MAX_WRITE_LENGTH - 1] = '\0';
         free(cleanedDstPath);
     }
     else
-        // For other commands, clear destination path
         dstPath[0] = '\0';
 
-    // Check for any extra unexpected arguments
     token = strtok_r(NULL, " ", &saveptr);
     if (token != NULL)
+    {
+        log_CL_error(21);
         return -1;
+    }
 
-    // Check for invalid paths
     if (srcPath[0] != '/' || ((strcasecmp(command, "COPY") == 0) && (dstPath[0] != '/')))
+    {
+        log_CL_error(22);
         return -1;
+    }
     
+    log_CL("Successfully parsed user input");
     return 0;
 }
 
 char *cleanPath(const char *inputPath)
 {
+    log_CL("Starting to clean path: %s", inputPath);
+
     // Allocate space for the cleaned path
     char *cleanedPath = (char *)malloc(MAX_PATH_LENGTH);
     if (!cleanedPath)
     {
+        log_CL_error(34);
         return NULL;
     }
     memset(cleanedPath, 0, MAX_PATH_LENGTH);
+    log_CL("Allocated memory for cleaned path");
 
     // Split path into components
     char *components[MAX_PATH_LENGTH / 2] = {0}; // Array to store path components
@@ -607,6 +671,7 @@ char *cleanPath(const char *inputPath)
 
     char *inputCopy = strdup(inputPath);
     char *token = strtok(inputCopy, "/");
+    log_CL("Starting to process path components");
 
     // Process each component
     while (token && componentCount < MAX_PATH_LENGTH / 2 - 1)
@@ -614,6 +679,7 @@ char *cleanPath(const char *inputPath)
         if (strcasecmp(token, ".") == 0)
         {
             // Skip "." components
+            log_CL("Skipping '.' component");
             token = strtok(NULL, "/");
             continue;
         }
@@ -622,6 +688,7 @@ char *cleanPath(const char *inputPath)
             // Handle ".." by removing previous component if it exists
             if (componentCount > 0)
             {
+                log_CL("Found '..' - removing previous component");
                 componentCount--;
             }
         }
@@ -629,6 +696,7 @@ char *cleanPath(const char *inputPath)
         {
             // Store valid component
             components[componentCount] = strdup(token);
+            log_CL("Added component: %s", token);
             componentCount++;
         }
         token = strtok(NULL, "/");
@@ -639,12 +707,18 @@ char *cleanPath(const char *inputPath)
     if (inputPath[0] == '/')
     {
         cleanedPath[pos++] = '/'; // Add initial '/' if present in input
+        log_CL("Added initial '/' to cleaned path");
     }
+
+    log_CL("Rebuilding final path from %d components", componentCount);
     for (int i = 0; i < componentCount; i++)
     {
         int remainingSpace = MAX_PATH_LENGTH - pos - 1;
         if (remainingSpace <= 0)
+        {
+            log_CL_error(35);
             break;
+        }
 
         // Add component separator
         if (pos > 1 || (pos == 1 && cleanedPath[0] != '/'))
@@ -657,9 +731,11 @@ char *cleanPath(const char *inputPath)
         if (len > remainingSpace)
         {
             len = remainingSpace;
+            log_CL("Truncating component due to length constraints");
         }
         strncpy(cleanedPath + pos, components[i], len);
         pos += len;
+        log_CL("Added component to path: %s", components[i]);
 
         // Free component
         free(components[i]);
@@ -667,6 +743,7 @@ char *cleanPath(const char *inputPath)
 
     // Add trailing null terminator
     cleanedPath[pos] = '\0';
+    log_CL("Final cleaned path: %s", cleanedPath);
 
     // Free temporary memory
     free(inputCopy);
@@ -713,6 +790,7 @@ int main(int argc, char *argv[])
         printf("%sUsage: %s <server_ip> <port>%s\n", ERROR_COLOR, argv[0], COLOR_RESET);
         return -1;
     }
+    log_CL("Client started");
 
     // Save the naming server IP and port
     strncpy(NS_IP, argv[1], 15);
@@ -725,16 +803,17 @@ int main(int argc, char *argv[])
     {
         return -1;
     }
+    log_CL("Successfully connected to naming server");
 
     // Tell the naming server that this is a client (and confirm acknowledgement)
     send(sock, "C", 1, 0);
     char buffer[MINI_CHUNGUS] = {0};
     memset(buffer, 0, sizeof(buffer));
     recv(sock, buffer, MINI_CHUNGUS, 0);
-    printf("Server ack: %s\n", buffer);
+    log_CL("Server acknowledged client with buffer: %s", buffer);
 
     // Print success message and boot the client
-    printf("%sClient connected successfully to Naming Server at IP Address: %s and Port: %d%s\n",
+    log_CL("%sClient connected successfully to Naming Server at IP Address: %s and Port: %d%s\n",
            SUCCESS_COLOR, NS_IP, NS_PORT, COLOR_RESET);
 
     printf(

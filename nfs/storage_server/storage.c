@@ -950,7 +950,7 @@ int main(int argc, char *argv[])
     // Thread creation failed (TODO: initialise process_client_requests function)
     if (pthread_create(&dma_thread, NULL, process_client_requests, dma_sock_ptr) != 0)
     {
-        printf("\033[1;31m Oopsie Woopsie : Thread Creation Failed!\033[0m\n");
+        log_SS_error(5);
         close(dma_sockfd);
         free(dma_sock_ptr);
     }

@@ -25,4 +25,15 @@ void log_CL_error(int error_code);
 // @return void
 void log_SS_error(int error_code);
 
+// @brief Logs a message by the client to the log file
+// @param message: The message to log
+// @return void
+void log_CL_message(char *message);
+
+// @brief Logs a message by the storage server to the log file
+// @param port: The port number
+// @param message: The message to log
+// @return void
+void log_SS_message(int port, char *message);
+
 #endif // ERRORS_H
