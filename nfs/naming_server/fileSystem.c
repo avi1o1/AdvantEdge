@@ -99,7 +99,6 @@ int addFile(char *userPath, int isDir)
             append_linked_list(newInode, parentInode->children);
         pthread_mutex_unlock(&parentInode->available); // Changed from lock to unlock
     }
-    free(parentPath);
 
     if (strcmp(userPath, "/Kalimba.mp3") && createFileSS(newInode))
     {
@@ -114,8 +113,12 @@ int addFile(char *userPath, int isDir)
             pthread_mutex_unlock(&parentInode->available);
         }
         free(newInode);
+        free(parentPath);
+
         return -1;
     }
+
+    free(parentPath);
 
     // Add to end of LRU cache if size of cache is less than 10
     // if(head == NULL)

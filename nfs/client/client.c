@@ -2,6 +2,7 @@
 
 int NS_PORT;    // Naming server port number
 char NS_IP[16]; // Naming server IP address
+char CL_IP[16]; // Client IP address
 
 // Helper function to display ll available commands
 void displayCommands(void)
@@ -308,6 +309,9 @@ int handleUserCommands(int sock)
         char *ip = strtok(buffer + 2, "|");
         int port = atoi(strtok(NULL, "|"));
 
+        printf("%d %d", ip, port);
+        fflush(stdout);
+
         // Get the actual data from the new connection and display it
         if (port != NS_PORT || strcasecmp(ip, NS_IP) != 0)
         {
@@ -368,7 +372,8 @@ int handleUserCommands(int sock)
                 struct sockaddr_in completion_msg;
                 completion_msg.sin_family = AF_INET;
                 completion_msg.sin_port = htons(0); // Bind to any available port
-                completion_msg.sin_addr.s_addr = inet_addr(NS_IP);
+                getActualIP(CL_IP);
+                completion_msg.sin_addr.s_addr = inet_addr(CL_IP);
         
                 if (bind(temp_sockfd, (struct sockaddr *)&completion_msg, sizeof(completion_msg)) < 0) {
                     perror("bind failed");

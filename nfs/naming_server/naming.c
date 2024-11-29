@@ -198,6 +198,7 @@ void *handleClient(void *arg)
         // Send response to client
         snprintf(info, sizeof(info), "N|%s|%d", Next_IP, Next_PORT);
 
+        sleep(1);
         if (send(client_sock, info, strlen(info), MSG_NOSIGNAL) < 0)
         {
             log_NM_error(9);

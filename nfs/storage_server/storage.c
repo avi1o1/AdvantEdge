@@ -254,6 +254,7 @@ void *send_to_client(void *arg)
     // Notify the client that the transfer is complete
     memset(buffer, 0, sizeof(buffer));
     snprintf(buffer, sizeof(buffer), "STOP");
+    sleep(1); // Wait for the client to receive the data
     send(client_sockfd, buffer, strlen(buffer), 0);
 
     close(client_sockfd);
