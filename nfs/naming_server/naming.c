@@ -864,6 +864,7 @@ void *initializeStorageServer(void *arg)
                 StoSerInit *init = malloc(sizeof(StoSerInit));
                 init->path = path;
                 init->isFile = type == 'F' ? true : false;
+                printf("Adding to extra: %s\n", path);
                 append_linked_list(init, extra);
             }
 
@@ -983,7 +984,7 @@ void *initializeStorageServer(void *arg)
                 StoSerInit *init = malloc(sizeof(StoSerInit));
                 init->path = path;
                 init->isFile = type == 'F' ? true : false;
-                append_linked_list(init, extra);
+                append_linked_list(init, missing);
             }
 
             // Send acknowledgment
@@ -1018,9 +1019,11 @@ void *initializeStorageServer(void *arg)
     // go through the two linked lists and send the missing files to the storage server using copySpecificSStoSpecificSS
     StorageServer *currentSS = getStorageServer(SSid);
     LinkedListNode *current = missing->head;
+    printf("Missing files:\n");
     while (current)
     {
         char *path = ((StoSerInit *)current->data)->path;
+        printf("%s\n", path);
         bool isFile = ((StoSerInit *)current->data)->isFile;
         copySpecificSStoSpecificSS(otherSS, currentSS, path, isFile);
         free(path);
@@ -1043,9 +1046,11 @@ void *initializeStorageServer(void *arg)
     StorageServer *otherSS2 = anotherSSid2 == -1 ? NULL : getStorageServer(anotherSSid2);
 
     current = extra->head;
+    printf("Extra files:\n");
     while (current)
     {
         char *path = ((StoSerInit *)current->data)->path;
+        printf("%s\n", path);
         bool isFile = ((StoSerInit *)current->data)->isFile;
         copySpecificSStoSpecificSS(currentSS, otherSS, path, isFile);
         if (otherSS2)
