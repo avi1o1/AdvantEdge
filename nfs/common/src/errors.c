@@ -178,22 +178,26 @@ void log_CL(char *message)
     fclose(log_file);
 }
 
-void log_SS(int port, char *message)
+void log_SS(int server_id, char *message)
 {
     time_t now;
     char timestamp[26];
+    char log_filename[64];
 
     time(&now);
     ctime_r(&now, timestamp);
     timestamp[24] = '\0';
 
-    printf(INFO_COLOR "[%s] %s%s\n", timestamp, message, COLOR_RESET);
+    // Create log filename with server_id number
+    snprintf(log_filename, sizeof(log_filename), "storage_server_%d.log", server_id);
+
+    printf(INFO_COLOR "[%s] Port %d: %s%s\n", timestamp, server_id, message, COLOR_RESET);
     
     // Log to file
-    FILE *log_file = fopen("storage_server.log", "a");
+    FILE *log_file = fopen(log_filename, "a");
     if (log_file == NULL)
     {
-        fprintf(stderr, "Failed to open log file\n");
+        fprintf(stderr, "Failed to open log file %s\n", log_filename);
         return;
     }
 
