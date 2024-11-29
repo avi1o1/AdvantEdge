@@ -30,6 +30,19 @@
 // 26: Pipe failed
 // 27: MPV player not found
 // 28: Storage server not acknowledging
+// 29: Network interfaces error
+// 30: Socket name error
+// 31: Storage server disconnected
+// 32: Send error
+// 33: mkdir error
+// 34: open error
+// 35: remove error
+// 36: ftw error
+// 37: File read error
+// 38: creat error
+// 39: rename error
+// 40: copy error
+// 41: nftw error
 
 char *error_messages[NUM_ERRORS] = {
     "Socket creation error",
@@ -61,6 +74,16 @@ char *error_messages[NUM_ERRORS] = {
     "Pipe failed",
     "MPV player not found",
     "Storage server not acknowledging",
+    "Network interfaces error",
+    "Socket name error",
+    "Storage server disconnected",
+    "mkdir error",
+    "open error",
+    "remove error",
+    "ftw error",
+    "File read error",
+    "creat error",
+    "rename error"
 };
 
 void log_NM_error(int error_code)

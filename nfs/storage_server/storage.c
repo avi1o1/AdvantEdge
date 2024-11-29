@@ -153,7 +153,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     strncat(buffer, temp, MINI_CHUNGUS - strlen(buffer) - 1);
     if (send(init_sock, buffer, strlen(buffer), 0) == -1)
     {
-        perror("send");
+        log_SS_error(32);
         return -1;
     }
 
@@ -161,7 +161,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     memset(buffer, 0, sizeof(buffer));
     if (recv(init_sock, buffer, MINI_CHUNGUS, MSG_WAITALL) == -1)
     {
-        perror("recv");
+        log_SS_error(6);
         return -1;
     }
     if (strcasecmp(buffer, "Acknowledged") == 0)
@@ -169,7 +169,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
         memset(buffer, 0, sizeof(buffer));
         if (recv(init_sock, buffer, MINI_CHUNGUS, MSG_WAITALL) == -1)
         {
-            perror("recv");
+            log_SS_error(6);
             return -1;
         }
     }
@@ -204,7 +204,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     {
         if (mkdir("most_wanted", 0700) == -1)
         {
-            perror("mkdir");
+            log_SS_error(33);
             return -1;
         }
     }
@@ -275,7 +275,7 @@ void *receive_from_ns(void *arg)
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd == -1)
     {
-        perror("open");
+        log_SS_error(33);
         send(naming_serverfd, "S|WRITE_NOTCOMPLETE", strlen("S|WRITE_NOTCOMPLETE"), 0);
         return NULL;
     }
@@ -316,7 +316,7 @@ void *receive_from_ns(void *arg)
         printf("fd:%d buffer:%s bytes_read:%ld\n\n", fd, buffer, bytes_read);
         if (write(fd, buffer, bytes_read) == -1)
         {
-            perror("write");
+            log_SS_error(18);
             break;
         }
 
@@ -344,7 +344,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
         // Handle files
         if (remove(fpath) == -1)
         {
-            perror("remove file");
+            log_SS_error(35);
             return -1;
         }
     }
@@ -358,7 +358,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
         DIR *dir = opendir(fpath);
         if (!dir)
         {
-            perror("opendir");
+            log_SS_error(34);
             return -1;
         }
 
@@ -392,7 +392,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
                     // Recursive call for subdirectory
                     if (ftw(subpath, delete_files_and_directories, 10) == -1)
                     {
-                        perror("ftw");
+                        log_SS_error(36);
                         closedir(dir);
                         return -1;
                     }
@@ -402,7 +402,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
                     // Remove file
                     if (remove(subpath) == -1)
                     {
-                        perror("remove file");
+                        log_SS_error(35);
                         closedir(dir);
                         return -1;
                     }
@@ -415,7 +415,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
         // Now remove the directory
         if (rmdir(fpath) == -1)
         {
-            perror("remove directory");
+            log_SS_error(35);
             return -1;
         }
     }
@@ -433,7 +433,7 @@ int copy_file(const char *source, const char *destination)
     src_fd = open(source, O_RDONLY);
     if (src_fd < 0)
     {
-        perror("Error opening source file");
+        log_SS_error(34);
         return -1;
     }
 
@@ -441,7 +441,7 @@ int copy_file(const char *source, const char *destination)
     dest_fd = open(destination, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (dest_fd < 0)
     {
-        perror("Error opening destination file");
+        log_SS_error(34);
         close(src_fd);
         return -1;
     }
@@ -455,7 +455,7 @@ int copy_file(const char *source, const char *destination)
             bytesWritten = write(dest_fd, buffer + totalWritten, bytesRead - totalWritten);
             if (bytesWritten < 0)
             {
-                perror("Error writing to destination file");
+                log_SS_error(18);
                 close(src_fd);
                 close(dest_fd);
                 return -1;
@@ -466,7 +466,7 @@ int copy_file(const char *source, const char *destination)
 
     if (bytesRead < 0)
     {
-        perror("Error reading from source file");
+        log_SS_error(37);
         close(src_fd);
         close(dest_fd);
         return -1;
@@ -572,7 +572,7 @@ void *process_naming_server_requests(void *arg)
                 if (creat(real_path, 0644) < 0)
                 {
                     snprintf(buffer, sizeof(buffer), "S|C_NOTCOMPLETE|%s", strerror(errno));
-                    perror("creat");
+                    log_SS_error(38);
                     send(naming_serverfd, buffer, strlen(buffer), 0);
                 }
                 else
@@ -590,7 +590,7 @@ void *process_naming_server_requests(void *arg)
                 if (mkdir(real_path, 0700) < 0)
                 {
                     snprintf(buffer, sizeof(buffer), "S|CD_NOTCOMPLETE|%s", strerror(errno));
-                    perror("mkdir");
+                    log_SS_error(33);
                     send(naming_serverfd, buffer, strlen(buffer), 0);
                 }
                 else
@@ -608,7 +608,7 @@ void *process_naming_server_requests(void *arg)
                 if (remove(real_path) < 0)
                 {
                     snprintf(buffer, sizeof(buffer), "S|D_NOTCOMPLETE|%s", strerror(errno));
-                    perror("remove");
+                    log_SS_error(35);
                     send(naming_serverfd, buffer, strlen(buffer), 0);
                 }
                 else
@@ -625,7 +625,7 @@ void *process_naming_server_requests(void *arg)
 
                 if (ftw(real_path, delete_files_and_directories, 20) == -1)
                 {
-                    perror("ftw");
+                    log_SS_error(36);
                     send(naming_serverfd, "S|DD_NOTCOMPLETE", strlen("S|DD_NOTCOMPLETE"), 0);
                 }
 
@@ -644,7 +644,7 @@ void *process_naming_server_requests(void *arg)
                 if (rename(old_path, new_path) < 0)
                 {
                     snprintf(buffer, sizeof(buffer), "S|RENAME_NOTCOMPLETE|%s", strerror(errno));
-                    perror("rename");
+                    log_SS_error(39);
                     send(naming_serverfd, buffer, strlen(buffer), 0);
                 }
                 else
@@ -665,7 +665,7 @@ void *process_naming_server_requests(void *arg)
                 else
                 {
                     snprintf(buffer, sizeof(buffer), "S|COPY_NOTCOMPLETE|%s", strerror(errno));
-                    perror("copy_file");
+                    log_SS_error(40);
                     send(naming_serverfd, buffer, strlen(buffer), 0);
                 }
                 close(naming_serverfd);
@@ -684,7 +684,7 @@ void *process_naming_server_requests(void *arg)
                     if (remove(src_path) < 0)
                     {
                         snprintf(buffer, sizeof(buffer), "S|MOVE_NOTCOMPLETE|%s", strerror(errno));
-                        perror("remove");
+                        log_SS_error(35);
                         send(naming_serverfd, buffer, strlen(buffer), 0);
                     }
                     else
@@ -707,7 +707,7 @@ void *process_naming_server_requests(void *arg)
                 // List all the files and directories
                 if (nftw("most_wanted", send_file_paths, MAX_OPEN_DIRS, FTW_PHYS) == -1)
                 {
-                    perror("nftw");
+                    log_SS_error(41);
                     send(naming_serverfd, "S|LIST_NOTCOMPLETE", strlen("S|LIST_NOTCOMPLETE"), 0);
                 }
                 else

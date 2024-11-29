@@ -138,10 +138,9 @@ void getActualIP(char *ip_buffer)
     struct ifaddrs *ifaddr, *ifa;
     int family, s;
     char host[NI_MAXHOST];
-
     if (getifaddrs(&ifaddr) == -1)
     {
-        perror("getifaddrs");
+        log_NM_error(9);
         exit(EXIT_FAILURE);
     }
 
@@ -183,7 +182,8 @@ int get_local_port(int sockfd)
 
     if (getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_len) == -1)
     {
-        perror("getsockname");
+        printf("%sError: Failed to get local port%s\n", ERROR_COLOR, COLOR_RESET);
+        log_NM_error(30);
         return -1;
     }
 

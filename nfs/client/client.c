@@ -365,7 +365,7 @@ int handleUserCommands(int sock)
             {
                 int temp_sockfd = socket(AF_INET, SOCK_STREAM, 0);
                 if (temp_sockfd < 0) {
-                    perror("socket creation failed");
+                    log_NM_error(0);
                     exit(EXIT_FAILURE);
                 }
         
@@ -376,7 +376,7 @@ int handleUserCommands(int sock)
                 completion_msg.sin_addr.s_addr = inet_addr(CL_IP);
         
                 if (bind(temp_sockfd, (struct sockaddr *)&completion_msg, sizeof(completion_msg)) < 0) {
-                    perror("bind failed");
+                    log_CL_error(1);
                     close(temp_sockfd);
                     exit(EXIT_FAILURE);
                 }
@@ -386,7 +386,7 @@ int handleUserCommands(int sock)
         
                 // Listen for incoming connections
                 if (listen(temp_sockfd, SOMAXCONN) < 0) {
-                    perror("listen failed");
+                    log_CL_error(2);
                     close(temp_sockfd);
                     exit(EXIT_FAILURE);
                 }
@@ -408,7 +408,7 @@ int handleUserCommands(int sock)
                     // Accept incoming connection
                     if ((tmp_sock = accept(temp_sockfd, (struct sockaddr *)&tmp_addr, &addr_len)) < 0)
                     {
-                        perror("accept failed");
+                        log_CL_error(4);
                         continue;
                     }
         
@@ -417,7 +417,7 @@ int handleUserCommands(int sock)
                     memset(buffer, 0, sizeof(buffer));
                     if (recv(tmp_sock, buffer, sizeof(buffer) - 1, 0) <= 0)
                     {
-                        perror("recv failed");
+                        log_CL_error(6);
                         close(tmp_sock);
                         continue;
                     }

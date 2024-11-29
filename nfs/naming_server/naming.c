@@ -4,15 +4,6 @@
 
 FILE *logFile;
 
-// TODO: Acknowledging the client: If the SS decides to write data asynchronously (possibly judging by the data size), it sends an immediate acknowledgement to the client that their request has been accepted. After successful write operation, the SS again informs the client about the same through the NS since the connection between the SS and client will be closed after the first acknowledgment.
-// TODO: Handling partial writes: If the SS goes down while it was in the process of an asynchronous write, the NS informs the client about this failure.
-// TODO: Priority writes : If the client wants to write data synchronously irrespective of the response time overhead, it can prioritize the task while initiating a write request to the NS, say through a-- SYNC flag or any other reasonable method.
-
-// TODO: LRU Caching: Implement LRU (Least Recently Used) caching for recent searches. By caching recently accessed information, the NM can expedite subsequent requests for the same data, further improving response times and system efficiency.
-
-// TODO: Logging and Message Display: Implement a logging mechanism where the NM records every request or acknowledgment received from clients or Storage Servers. Additionally, the NM should display or print relevant messages indicating the status and outcome of each operation. This bookkeeping ensures traceability and aids in debugging and system monitoring.
-// TODO: IP Address and Port Recording : The log should include relevant information such as IP addresses and ports used in each communication, enhancing the ability to trace and diagnose issues.
-
 int setupServer()
 {
     int serverFD;
@@ -530,7 +521,7 @@ int ListPathsCL(char *data, char *path)
                 }
                 else
                 {
-                    perror("recv");
+                    log_NM_error(6);
                     break;
                 }
             }
@@ -542,7 +533,7 @@ int ListPathsCL(char *data, char *path)
                     printf("Storage server disconnected\n");
                     break;
                 }
-                perror("recv");
+                log_NM_error(31);
                 continue;
             }
 
@@ -801,7 +792,7 @@ void *initializeStorageServer(void *arg)
                 printf("Storage server disconnected\n");
                 break;
             }
-            perror("recv");
+            log_NM_error(31);
             continue;
         }
 
@@ -925,7 +916,7 @@ void *initializeStorageServer(void *arg)
                 printf("Storage server disconnected\n");
                 break;
             }
-            perror("recv");
+            log_NM_error(31);
             continue;
         }
 
