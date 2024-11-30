@@ -11,6 +11,7 @@ void displayCommands(void)
 {
     printf("\n%sAvailable commands:%s\n", INFO_COLOR, COLOR_RESET);
     printf(COLOR_CYAN);
+    printf("0.\tHELP\n");
     printf("1.\tCREATE FILE <path/to/file>\n");
     printf("2.\tCREATE DIRECTORY <path/to/directory>\n");
     printf("3.\tCOPY FILE <path/to/file> <path/to/dst>\n");
@@ -28,7 +29,6 @@ void displayCommands(void)
     printf("15.\tGIVE GRADES\n");
     printf("16.\tEXIT\n");
     printf(COLOR_RESET);
-    printf("\n%sEnter command%s\n", PROMPT_COLOR, COLOR_RESET);
 }
 
 // Function to stream audio data from the storage server
@@ -216,11 +216,14 @@ int handleUserCommands(int sock)
     char srcPath[MAX_PATH_LENGTH] = {0};
     char dstPath[MAX_WRITE_LENGTH] = {0};
     log_CL("Initialized command handling variables");
+    
+    displayCommands();
 
     // Main loop to handle user commands
     while (true)
     {
-        displayCommands();
+        printf(COLOR_RESET);
+        printf("\n%sEnter command%s\n", PROMPT_COLOR, COLOR_RESET);
 
         if (fgets(buffer, MINI_CHUNGUS, stdin) == NULL)
         {
@@ -230,6 +233,13 @@ int handleUserCommands(int sock)
         log_CL("Read user input from stdin");
 
         buffer[strcspn(buffer, "\n")] = 0;
+
+        // Check if the user input is "HELP"
+        if (strcasecmp(buffer, "HELP") == 0)
+        {
+            displayCommands();
+            continue;
+        }
 
         if (parseUserInput(buffer, command, isFile, srcPath, dstPath) < 0)
         {
@@ -371,13 +381,14 @@ int handleUserCommands(int sock)
 
                 if (bytes_received > 0)
                 {
-                    printf("\n%sResponse%s\n", PROMPT_COLOR, COLOR_RESET);
+                    printf("%sResponse%s\n", PROMPT_COLOR, COLOR_RESET);
                     if (strcmp(buffer, "Job Done!") == 0)
                         printf("%s%s\n%s", COLOR_GREEN, buffer, COLOR_RESET);
                     else if (strncmp(buffer, "Oopsie Woopsie", 14) == 0)
                         printf("%s%s\n%s", COLOR_RED, buffer, COLOR_RESET);
                     else
                         printf("%s\n", buffer);
+                    printf("\n==========================================================\n");
                     break;
                 }
 
@@ -541,15 +552,10 @@ int parseUserInput(char *input, char *command, bool *isFile, char *srcPath, char
 
     token = strtok_r(NULL, " ", &saveptr);
     if (token == NULL)
-    {
-        log_CL_error(13);
         return -1;
-    }
 
     if (strcasecmp(command, "LIST") == 0)
-    {
         *isFile = false;
-    }
     else if (strcasecmp(command, "STREAM") == 0 ||
              strcasecmp(command, "READ") == 0 ||
              strcasecmp(command, "WRITE") == 0 ||
