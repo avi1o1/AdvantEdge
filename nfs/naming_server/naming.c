@@ -426,6 +426,33 @@ int CopyCL(bool isFile, char *srcPath, char *dstPath)
     dstInode->writersCount++;
     pthread_mutex_unlock(&dstInode->available);
     int ret_val = copyFileSS(srcInode, dstInode);
+    
+    if (!isFile)
+    {
+        LinkedListNode *current = srcInode->children->head;
+        while (current)
+        {
+            char *childSrcPath = ((Inode *)current->data)->userPath;
+            char *temp = strdup(childSrcPath) + strlen(srcPath);
+            char childDstPath[MAX_PATH_LENGTH];
+            strcpy(childDstPath, dstPath);
+            strcat(childDstPath, temp);
+            int ret_temp_val = CopyCL(!(((Inode *)current->data)->isDir), childSrcPath, childDstPath);
+            if (ret_temp_val)
+            {
+                ret_val = ret_temp_val;
+                break;
+            }
+            current = current->next;
+        }
+    }
+
+    pthread_mutex_lock(&dstInode->available);
+    dstInode->size = srcInode->size;
+    dstInode->permission = srcInode->permission;
+    if (!isFile)
+        copy_linked_list(srcInode->children, dstInode->children);
+    pthread_mutex_unlock(&dstInode->available);
     pthread_mutex_lock(&srcInode->available);
     srcInode->readersCount--;
     pthread_mutex_unlock(&srcInode->available);
