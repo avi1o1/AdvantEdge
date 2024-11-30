@@ -96,4 +96,11 @@ void destroy_linked_list(LinkedList linkedList);
  */
 void print_linked_list(LinkedList linkedList);
 
+/**
+ * @brief Copies the contents of one linked list to another
+ * @param source The source linked list to copy from
+ * @param destination The destination linked list to copy to
+ */
+void copy_linked_list(LinkedList source, LinkedList destination);
+
 #endif // _LINKEDLIST_H_
