@@ -307,7 +307,7 @@ void *receive_from_ns(void *arg)
     int priority = data->priority;
     char *path = data->path;
 
-        sprintf(log_message, "Receiving write request for path: %s", path);
+    sprintf(log_message, "Receiving write request for path: %s", path);
     log_SS(server_id, log_message);
 
     free(data);
@@ -316,7 +316,8 @@ void *receive_from_ns(void *arg)
     int fd = open(path, O_WRONLY | O_CREAT | O_TRUNC, 0644);
     if (fd == -1)
     {
-        log_SS_error(33);
+        printf("Could not open file: %s\n", path);
+        log_SS_error(34);
         send(naming_serverfd, "S|WRITE_NOTCOMPLETE", strlen("S|WRITE_NOTCOMPLETE"), 0);
         return NULL;
     }
@@ -358,7 +359,7 @@ void *receive_from_ns(void *arg)
             break;
         }
 
-                sprintf(log_message, "Writing %ld bytes to file", bytes_read);
+        sprintf(log_message, "Writing %ld bytes to file", bytes_read);
         log_SS(server_id, log_message);
 
         printf("\nWrite attempt:\n");
@@ -577,8 +578,6 @@ void *process_naming_server_requests(void *arg)
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(naming_serverfd, buffer, sizeof(buffer) - 1);
         
-                sprintf(log_message, "Received from naming server: %s", buffer);
-        log_SS(server_id, log_message);
         
         // Clear the buffer
         if (bytes_read < 0)
@@ -603,9 +602,9 @@ void *process_naming_server_requests(void *arg)
 
         // Log the request
         buffer[bytes_read] = '\0';
-        printf("Received from naming server: %s\n", buffer);
+
         
-                sprintf(log_message, "Received from naming server: %s", buffer);
+        sprintf(log_message, "Received from naming server: %s", buffer);
         log_SS(server_id, log_message);
         fflush(stdout);
 
@@ -653,8 +652,8 @@ void *process_naming_server_requests(void *arg)
 
                 pthread_t thread_id;
                 pthread_create(&thread_id, NULL, receive_from_ns, (void *)data);
-                pthread_join(thread_id, NULL);
                 log_SS(server_id, "Thread created for PRIORITYWRITE request");
+                pthread_join(thread_id, NULL);
             }
 
             else if (strcasecmp(token, "CREATE") == 0)
@@ -887,12 +886,11 @@ void *process_client_requests(void *arg)
         if (client_sockfd < 0)
             continue; // If accept fails, continue to the next iteration
 
+        printf("Client connected\n");
+
         // Get request from client
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(client_sockfd, buffer, sizeof(buffer) - 1);
-        
-                sprintf(log_message, "Received from client: %s", buffer);
-        log_SS(server_id, log_message);
 
         // Clear the buffer
         if (bytes_read < 0)
@@ -917,11 +915,8 @@ void *process_client_requests(void *arg)
             break;
         }
 
-        // Get the request from the client
         buffer[bytes_read] = '\0';
-        printf("\nReceived from client: %s\n", buffer);
-        
-                sprintf(log_message, "Received from client: %s", buffer);
+        snprintf(log_message, sizeof(log_message), "Received from client: %s", buffer);
         log_SS(server_id, log_message);
         
         // Open Path
