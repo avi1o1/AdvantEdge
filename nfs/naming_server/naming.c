@@ -233,7 +233,7 @@ void *handleClient(void *arg)
                         strcat(writeData, buffer);
                     }
                     printf("Final write data: %s\n", writeData);
-
+                    sleep(1);
                     send(client_sock, data, strlen(data), MSG_NOSIGNAL);
 
                     memset(buffer, 0, sizeof(buffer));
@@ -271,7 +271,7 @@ void *handleClient(void *arg)
                                     break;
                                 }
                                 char error[MINI_CHUNGUS];
-                                snprintf(error, sizeof(error), "N|ERROR|%d", status);
+                                snprintf(error, sizeof(error), "Failed to locate file (doesn't exist)", status);
                                 send(cl_sock, error, strlen(error), 0);
                                 close(cl_sock);
                             }

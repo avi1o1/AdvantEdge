@@ -105,7 +105,7 @@ void log_NM_error(int error_code)
     printf(ERROR_COLOR "[%s] %d: %s%s\n", timestamp, error_code, error_messages[error_code], COLOR_RESET);
 
     // Log to file
-    FILE *log_file = fopen("nfs.log", "a");
+    FILE *log_file = fopen("naming_server.log", "a");
     if (log_file == NULL)
     {
         fprintf(stderr, "Failed to open log file\n");
