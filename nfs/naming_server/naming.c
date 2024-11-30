@@ -83,8 +83,9 @@ void *handleClient(void *arg)
         // Check if the client requested to exit
         if ((strcasecmp(buffer, "C|EXIT|0||") == 0) || (strcasecmp(buffer, "C|EXIT|1||") == 0))
         {
-            printf("\033[1;33mClient requested to exit!\033[0m\n");
-            break;
+            printf("\033[1;33mClient exited!\033[0m\n");  // TODO: log this
+            close(client_sock);
+            return NULL;
         }
 
         // Extract information from the client request
@@ -321,8 +322,13 @@ void *handleClient(void *arg)
                 status = -1;
         }
 
-        //TODO: Log for status status = -1 and status = -2
-        if (status == -3)
+        // Log for status
+        if (status == -1)
+        {
+            log_NM_error(22);
+            strcpy(data, "Oopsie Woopsie: Storage server is not alive!");
+        }
+        else if (status == -3)
         {
             log_NM_error(10);
             strcpy(data, "Oopsie Woopsie: File not found!");
@@ -337,7 +343,6 @@ void *handleClient(void *arg)
             log_NM_error(12);
             strcpy(data, "Oopsie Woopsie: No storage servers!");
         }
-
         else if (status < 0)
         {
             printf("%d\n", status);

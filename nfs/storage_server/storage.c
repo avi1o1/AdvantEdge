@@ -1061,7 +1061,7 @@ int main(int argc, char *argv[])
     pthread_t nm_thread;
 
     // Thread creation failed
-    if (pthread_create(&nm_thread, NULL, process_naming_server_requests, nm_sock_ptr) != 0)
+    if (pthread_create(&nm_thread, NULL, process_naming_server_requests, nm_sock_ptr) < 0)
     {
         log_SS_error(5);
         close(nm_sockfd);
@@ -1083,7 +1083,7 @@ int main(int argc, char *argv[])
     pthread_t dma_thread;
 
     // Thread creation failed (TODO: initialise process_client_requests function)
-    if (pthread_create(&dma_thread, NULL, process_client_requests, dma_sock_ptr) != 0)
+    if (pthread_create(&dma_thread, NULL, process_client_requests, dma_sock_ptr) < 0)
     {
         log_SS_error(5);
         close(dma_sockfd);
