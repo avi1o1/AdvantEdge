@@ -321,6 +321,7 @@ void *handleClient(void *arg)
                 status = -1;
         }
 
+        //TODO: Log for status status = -1 and status = -2
         if (status == -3)
         {
             log_NM_error(10);
@@ -339,6 +340,7 @@ void *handleClient(void *arg)
 
         else if (status < 0)
         {
+            printf("%d\n", status);
             log_NM_error(23);
             strcpy(data, "Oopsie Woopsie: Something went wrong!");
         }
@@ -494,6 +496,10 @@ int ListPathsCL(char *data, char *path)
     data[0] = '\0';
     int numClusters = getActiveClusterCount();
     printf("Number of clusters: %d\n", numClusters);
+    if (numClusters == 0) {
+        return -5;
+    }
+
     for (int i = 0; i < numClusters; i++)
     {
         StorageServer *ss = getAliveStorageServerFromCluster(i);

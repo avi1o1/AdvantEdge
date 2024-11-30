@@ -165,7 +165,7 @@ void log_CL(char *message)
     ctime_r(&now, timestamp);
     timestamp[24] = '\0';
 
-    printf(INFO_COLOR "[%s] %s%s\n", timestamp, message, COLOR_RESET);
+    // printf(INFO_COLOR "[%s] %s%s\n", timestamp, message, COLOR_RESET);
 
     // Log to file
     FILE *log_file = fopen("client.log", "a");

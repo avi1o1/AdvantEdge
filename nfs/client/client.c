@@ -221,7 +221,6 @@ int handleUserCommands(int sock)
     while (true)
     {
         displayCommands();
-        log_CL("Displayed available commands to user");
 
         if (fgets(buffer, MINI_CHUNGUS, stdin) == NULL)
         {
