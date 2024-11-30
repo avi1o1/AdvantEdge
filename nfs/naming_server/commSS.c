@@ -356,7 +356,7 @@ int writeFileSS(Inode *inode, void *data, bool async, char *ip, int port)
 int copyFileSS(Inode *fromInode, Inode *toInode)
 {
     if (fromInode->isDir)
-        return createFileSS(toInode);
+        return 0;
     return writeFileSS(toInode, readFileSS(fromInode), false, NULL, 0);
 }
 
