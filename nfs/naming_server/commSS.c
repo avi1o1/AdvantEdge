@@ -303,7 +303,6 @@ int writeFileSS(Inode *inode, void *data, bool async, char *ip, int port)
             pthread_create(&threads[threadCount], NULL, writeFileNotAsyncThread, &threadArgs[threadCount]);
         threadCount++;
     }
-    printf("Check\n");
 
     // Wait for all threads to complete if not async
     if (!async)
@@ -346,6 +345,10 @@ int writeFileSS(Inode *inode, void *data, bool async, char *ip, int port)
         pthread_create(&completionThreadID, NULL, completionThread, completionArgs);
         pthread_detach(completionThreadID);
     }
+
+
+    // Update file size
+    inode->size = strlen(data);
 
     return 0;
 }

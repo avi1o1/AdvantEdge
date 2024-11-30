@@ -56,7 +56,7 @@ int addFile(char *userPath, int isDir)
     }
 
     if (!strcmp(userPath, "/Kalimba.mp3"))
-        newInode->size = 8808038;
+        newInode->size = 230566;
     else
         newInode->size = 0;
     newInode->creationTime = time(NULL);
