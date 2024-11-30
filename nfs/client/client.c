@@ -197,6 +197,8 @@ int getActualData(char *ip, int port, char *request)
             break;
         printf("%s\n", buffer);
     }
+    printf("\n==========================================================\n");
+
     log_CL("Received data from storage server");
 
     // Close the new socket after use
