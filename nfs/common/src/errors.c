@@ -77,6 +77,7 @@ char *error_messages[NUM_ERRORS] = {
     "Network interfaces error",
     "Socket name error",
     "Storage server disconnected",
+    "send error",
     "mkdir error",
     "open error",
     "remove error",
