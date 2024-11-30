@@ -41,8 +41,7 @@ void append_linked_list(void *data, LinkedList linkedList)
         return;
     }
 
-    D->data = (void *)malloc(strlen((char *)data) + 1);
-    strcpy((char *)D->data, (char *)data);
+    D->data = data;
     D->next = NULL;
 
     linkedList->size++;
@@ -79,8 +78,7 @@ void insert_linked_list(void *data, int pos, LinkedList linkedList)
         pthread_mutex_unlock(&linkedList->lock);
         return;
     }
-    D->data = (void *)malloc(strlen((char *)data) + 1);
-    strcpy((char *)D->data, (char *)data);
+    D->data = data;
 
     if (pos == 0)
     {
@@ -211,7 +209,8 @@ void copy_linked_list(LinkedList source, LinkedList destination)
     LinkedListNode *node = source->head;
     while (node != NULL)
     {
-        append_linked_list(node->data, destination);
+        char *data = strdup((char *)node->data);
+        append_linked_list(data, destination);
         node = node->next;
     }
     pthread_mutex_unlock(&source->lock);
