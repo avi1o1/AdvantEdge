@@ -271,7 +271,7 @@ void *handleClient(void *arg)
                                     break;
                                 }
                                 char error[MINI_CHUNGUS];
-                                snprintf(error, sizeof(error), "Failed to locate file (doesn't exist)", status);
+                                snprintf(error, sizeof(error), "Failed to locate file (doesn't exist)");
                                 send(cl_sock, error, strlen(error), 0);
                                 close(cl_sock);
                             }
