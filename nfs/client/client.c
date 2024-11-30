@@ -359,7 +359,7 @@ int handleUserCommands(int sock)
             int x = getActualData(ip, port, saveRequest);
             if (x == -1)
             {
-                log_CL_error(33);
+                log_CL_error(6);
                 printf("%sError: Could not get actual data from the storage server%s\n", ERROR_COLOR, COLOR_RESET);
                 continue;
             }
