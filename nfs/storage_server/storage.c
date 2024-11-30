@@ -1,5 +1,7 @@
 #include "storage.h"
 
+char log_message[4200];
+
 int getClusterID(int storageServerID)
 {
     // Calculate cluster ID based on storage server ID ranges
@@ -89,19 +91,24 @@ int send_file_paths(const char *fpath, const struct stat *sb, int typeflag, stru
                  type,
                  fpath + 12);
 
-        log_SS(server_id, "Sending file/directory path to naming server: %s", buffer);
+                sprintf(log_message, "Sending file/directory path to naming server: %s", buffer);
+        log_SS(server_id, log_message);
         send(temp_naming_serverfd, buffer, strlen(buffer), 0);
 
         // Wait for acknowledgment
         memset(buffer, 0, sizeof(buffer));
         recv(temp_naming_serverfd, buffer, MINI_CHUNGUS, 0);
-        log_SS(server_id, "Received from naming server: %s", buffer);
+        
+                sprintf(log_message, "Received from naming server: %s", buffer);
+        log_SS(server_id, log_message);
 
         char *saveptr;
         char *token = strtok_r(buffer, "|", &saveptr);
         if (strcasecmp(token, "N") != 0)
         {
-            log_SS(server_id, "Unexpected packet type received: %s", token);
+                        sprintf(log_message, "Unexpected packet type received: %s", token);
+            log_SS(server_id, log_message);
+
             fprintf(stderr, "%ssend_file_paths: Unexpected packet type: %s%s\n",
                     ERROR_COLOR, token, COLOR_RESET);
             return -1;
@@ -115,7 +122,9 @@ int send_file_paths(const char *fpath, const struct stat *sb, int typeflag, stru
                     ERROR_COLOR, COLOR_RESET);
             return -1;
         }
-        log_SS(server_id, "Successfully processed path: %s", fpath);
+
+                sprintf(log_message, "Successfully processed path: %s", fpath);
+        log_SS(server_id, log_message);
     }
 
     return 0; // Continue traversal
@@ -126,14 +135,12 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     char buffer[MINI_CHUNGUS] = {0};
 
     getActualIP(ip);
-    log_SS(server_id, "Got actual IP: %s", ip);
 
     // Read existing ID from metadata file if available
     FILE *fp = fopen(".metadata", "r");
     if (fp == NULL)
     {
-        log_SS(server_id, "Metadata file not found. Requesting new ID...");
-        printf("%sMetadata file not found. Requesting new ID...%s\n", INFO_COLOR, COLOR_RESET);
+        log_SS_error(20);
         server_id = -1;
     }
     else
@@ -142,13 +149,14 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
         char id_str[6] = {0};
         if (fscanf(fp, "%5s", id_str) != 1)
         {
-            log_SS(server_id, "Error reading ID from metadata file");
+            log_SS_error(20);
             printf("%sError reading ID from metadata file%s\n", ERROR_COLOR, COLOR_RESET);
             server_id = -1;
         }
         else {
             server_id = atoi(id_str);
-            log_SS(server_id, "Read existing server ID: %d from metadata", server_id);
+                        sprintf(log_message, "Read existing server ID: %d from metadata", server_id);
+            log_SS(server_id, log_message);
         }
         fclose(fp);
     }
@@ -161,7 +169,10 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     // Send vitals to naming server
     snprintf(temp, sizeof(temp), "S|%d|%s|%d|%d", server_id, ip, nm_port, dma_port);
     strncat(buffer, temp, MINI_CHUNGUS - strlen(buffer) - 1);
-    log_SS(server_id, "Sending vitals to naming server: %s", buffer);
+
+        sprintf(log_message, "Sending vitals to naming server: %s", buffer);
+    log_SS(server_id, log_message);
+
     if (send(init_sock, buffer, strlen(buffer), 0) == -1)
     {
         log_SS_error(32);
@@ -185,8 +196,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
             return -1;
         }
     }
-    log_SS(server_id, "Received from naming server: %s", buffer);
-    printf("Received from naming server: %s\n", buffer);
+
     char *saveptr = NULL;
     char *token = strtok_r(buffer, "|", &saveptr);
     if (token == NULL || strcasecmp(token, "N") != 0)
@@ -210,7 +220,8 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     }
 
     server_id = atoi(token);
-    log_SS(server_id, "Server ID assigned: %d", server_id);
+        sprintf(log_message, "Server ID assigned: %d", server_id);
+    log_SS(server_id, log_message);
 
     // Ensure the "most_wanted" directory exists
     struct stat st;
@@ -238,7 +249,9 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
 
     ssID = server_id;
     clusterID = getClusterID(ssID);
-    log_SS(server_id, "Set ssID=%d and clusterID=%d", ssID, clusterID);
+    
+        sprintf(log_message, "Setting ssID=%d and clusterID=%d", ssID, clusterID);
+    log_SS(server_id, log_message);
 
     return 0;
 }
@@ -269,7 +282,9 @@ void *send_to_client(void *arg)
         total_bytes_read += bytes_read;
         usleep(1000); // Small delay to avoid flooding the socket
     }
-    log_SS(server_id, "Total bytes read: %d", total_bytes_read);
+    
+        sprintf(log_message, "Total bytes read: %d", total_bytes_read);
+    log_SS(server_id, log_message);
     printf("Total bytes read: %d\n\n", total_bytes_read);
 
     // Notify the client that the transfer is complete
@@ -292,7 +307,8 @@ void *receive_from_ns(void *arg)
     int priority = data->priority;
     char *path = data->path;
 
-    log_SS(server_id, "Receiving write request for path: %s", path);
+        sprintf(log_message, "Receiving write request for path: %s", path);
+    log_SS(server_id, log_message);
 
     free(data);
 
@@ -342,7 +358,9 @@ void *receive_from_ns(void *arg)
             break;
         }
 
-        log_SS(server_id, "Writing %ld bytes to file", bytes_read);
+                sprintf(log_message, "Writing %ld bytes to file", bytes_read);
+        log_SS(server_id, log_message);
+
         printf("\nWrite attempt:\n");
         printf("fd:%d buffer:%s bytes_read:%ld\n\n", fd, buffer, bytes_read);
         if (write(fd, buffer, bytes_read) == -1)
@@ -367,7 +385,7 @@ void *receive_from_ns(void *arg)
     else
     {
         send(naming_serverfd, "S|WRITE_NOTCOMPLETE", strlen("S|WRITE_NOTCOMPLETE"), 0);
-        log_SS(server_id, "Write failed to complete");
+        log_SS_error(18);
     }
 
     // Close the file
@@ -380,7 +398,9 @@ void *receive_from_ns(void *arg)
 
 int delete_files_and_directories(const char *fpath, const struct stat *sb, int typeflag)
 {
-    log_SS(server_id, "Deleting file/directory: %s", fpath);
+        sprintf(log_message, "Deleting file/directory: %s", fpath);
+    log_SS(server_id, log_message);
+
     if (typeflag == FTW_F)
     {
         // Handle files
@@ -389,7 +409,8 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
             log_SS_error(35);
             return -1;
         }
-        log_SS(server_id, "Successfully deleted file: %s", fpath);
+                sprintf(log_message, "Successfully deleted file: %s", fpath);
+        log_SS(server_id, log_message);
     }
     else if (typeflag == FTW_D)
     {
@@ -404,7 +425,6 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
             log_SS_error(34); 
             return -1;
         }
-        log_SS(server_id, "Opened directory for deletion: %s", fpath);
 
         struct dirent *entry;
         while ((entry = readdir(dir)))
@@ -424,8 +444,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
             }
             else
             {
-                log_SS(server_id, "Error: Path length exceeds buffer size");
-                fprintf(stderr, "Error: Path length exceeds buffer size\n");
+                log_SS(server_id, "Path length exceeds buffer size");
                 subpath[0] = '\0';
             }
 
@@ -434,7 +453,6 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
             {
                 if (S_ISDIR(st.st_mode))
                 {
-                    log_SS(server_id, "Found subdirectory to delete: %s", subpath);
                     // Recursive call for subdirectory
                     if (ftw(subpath, delete_files_and_directories, 10) == -1)
                     {
@@ -445,7 +463,6 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
                 }
                 else
                 {
-                    log_SS(server_id, "Deleting file: %s", subpath);
                     // Remove file
                     if (remove(subpath) == -1)
                     {
@@ -453,22 +470,24 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
                         closedir(dir);
                         return -1;
                     }
-                    log_SS(server_id, "Successfully deleted file: %s", subpath);
+                    
+                                        sprintf(log_message, "Deleted file: %s", subpath);
+                    log_SS(server_id, log_message);
                 }
             }
         }
 
         closedir(dir);
-        log_SS(server_id, "Closed directory: %s", fpath);
 
         // Now remove the directory
-        log_SS(server_id, "Removing directory: %s", fpath);
         if (rmdir(fpath) == -1)
         {
             log_SS_error(35);
             return -1;
         }
-        log_SS(server_id, "Successfully removed directory: %s", fpath);
+        
+                sprintf(log_message, "Successfully removed directory: %s", fpath);
+        log_SS(server_id, log_message);
     }
 
     return 0; // Continue traversal
@@ -480,7 +499,8 @@ int copy_file(const char *source, const char *destination)
     ssize_t bytesRead, bytesWritten;
     char buffer[MINI_CHUNGUS];
 
-    log_SS(server_id, "Copying file from %s to %s", source, destination);
+        sprintf(log_message, "Copying file from %s to %s", source, destination);
+    log_SS(server_id, log_message);
 
     // Open source file
     src_fd = open(source, O_RDONLY);
@@ -556,7 +576,10 @@ void *process_naming_server_requests(void *arg)
         // Get request from naming server
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(naming_serverfd, buffer, sizeof(buffer) - 1);
-        log_SS(server_id, "Received from naming server: %s", buffer);
+        
+                sprintf(log_message, "Received from naming server: %s", buffer);
+        log_SS(server_id, log_message);
+        
         // Clear the buffer
         if (bytes_read < 0)
         {
@@ -581,7 +604,9 @@ void *process_naming_server_requests(void *arg)
         // Log the request
         buffer[bytes_read] = '\0';
         printf("Received from naming server: %s\n", buffer);
-        log_SS(server_id, "Received from naming server: %s", buffer);
+        
+                sprintf(log_message, "Received from naming server: %s", buffer);
+        log_SS(server_id, log_message);
         fflush(stdout);
 
         // Processing the request. Format: <N|{cmnd}|>
@@ -811,6 +836,7 @@ void *process_naming_server_requests(void *arg)
                 int fd = open(real_path, O_RDONLY);
                 if (fd == -1)
                 {
+                    log_SS_error(10);
                     printf("File not found\n");
                     send(naming_serverfd, "S|READ_NOTCOMPLETE", strlen("S|READ_NOTCOMPLETE"), 0);
                     continue;
@@ -851,7 +877,7 @@ void *process_client_requests(void *arg)
     int dma_sockfd = *(int *)arg;
     free(arg);
     printf("Thread created for client requests\n");
-    log_SS(server_id, "Listening for client connections");
+    printf("Listening for client connections...\n");
 
     char buffer[MINI_CHUNGUS] = {0};
     while (1)
@@ -864,7 +890,9 @@ void *process_client_requests(void *arg)
         // Get request from client
         memset(buffer, 0, sizeof(buffer));
         ssize_t bytes_read = read(client_sockfd, buffer, sizeof(buffer) - 1);
-        log_SS(server_id, "Received from client: %s", buffer);
+        
+                sprintf(log_message, "Received from client: %s", buffer);
+        log_SS(server_id, log_message);
 
         // Clear the buffer
         if (bytes_read < 0)
@@ -892,9 +920,10 @@ void *process_client_requests(void *arg)
         // Get the request from the client
         buffer[bytes_read] = '\0';
         printf("\nReceived from client: %s\n", buffer);
-        log_SS(server_id, "Received from client: %s", buffer);
-        fflush(stdout);
-
+        
+                sprintf(log_message, "Received from client: %s", buffer);
+        log_SS(server_id, log_message);
+        
         // Open Path
         char *ret_ptr;
         char *token = strtok_r(buffer, "|", &ret_ptr);
@@ -913,8 +942,6 @@ void *process_client_requests(void *arg)
                 char real_path[MAX_PATH_LENGTH];
                 snprintf(real_path, sizeof(real_path), "most_wanted%s", token);
 
-                log_SS(server_id, "Opening file: %s", real_path);
-                printf("Opening file: %s\n", real_path);
                 fd = open(real_path, O_RDONLY);
                 if (fd == -1)
                 {
@@ -923,9 +950,9 @@ void *process_client_requests(void *arg)
                     send(client_sockfd, "S|READ_NOTCOMPLETE", strlen("S|READ_NOTCOMPLETE"), 0);
                     continue;
                 }
-                log_SS(server_id, "File opened successfully. Sending ACK to Client");
-                printf("File opened successfully. Sending ACK to Client\n");
+
                 // Acknowledge the client request
+                log_SS(server_id, "File opened successfully for READ/STREAM. Sending ACK to Client");
                 send(client_sockfd, "S|ACK", strlen("S|ACK"), 0);
             }
             else
@@ -946,8 +973,9 @@ void *process_client_requests(void *arg)
         data->client_sockfd = client_sockfd;
         data->fd = fd;
 
-        log_SS(server_id, "Creating thread to send data to client...");
-        printf("Creating thread to send data to client...\n");
+                sprintf(log_message, "Creating thread to send data to client at %d...", client_sockfd);
+        log_SS(server_id, log_message);
+        
         pthread_create(&thread_id, NULL, send_to_client, (void *)data);
         pthread_detach(thread_id);
     }
@@ -995,12 +1023,8 @@ int main(int argc, char *argv[])
     recv(init_sock, buffer, MINI_CHUNGUS, MSG_WAITALL);
     printf("Server ack: %s\n", buffer);
 
-    log_SS(server_id, "Acknowledged by Naming Server");
-
     // Setting up DMA socket for the clients
     dma_sockfd = socket(AF_INET, SOCK_STREAM, 0);
-
-    log_SS(server_id, "Listening for client connections");
 
     struct sockaddr_in dma_server;
     dma_server.sin_family = AF_INET;
@@ -1016,7 +1040,8 @@ int main(int argc, char *argv[])
     printf("%sStorage server connected successfully to Naming Server at IP Address: %s and Port: %d%s\n",
            SUCCESS_COLOR, argv[1], atoi(argv[2]), COLOR_RESET);
 
-    log_SS(server_id, "Storage server connected successfully to Naming Server at IP Address %s and Port %d", argv[1], atoi(argv[2]));
+        sprintf(log_message, "Storage server connected successfully to Naming Server at IP Address %s and Port %d", argv[1], atoi(argv[2]));
+    log_SS(server_id, log_message);
 
     int ret = server_init(nm_sockfd, dma_sockfd, init_sock);
 
@@ -1028,7 +1053,7 @@ int main(int argc, char *argv[])
 
     close(init_sock);
     printf("%sStorage server initialized with ID: %d%s\n", INFO_COLOR, server_id, COLOR_RESET);
-    log_SS(server_id, "Storage server initialized with ID %d", server_id);
+    log_SS(server_id, "Storage server initialized");
 
     // Thread to process requests from the naming server
     int *nm_sock_ptr = malloc(sizeof(int));
@@ -1046,7 +1071,8 @@ int main(int argc, char *argv[])
     else
     {
         printf("New thread created successfully for the request: %d\n", nm_sockfd);
-        log_SS(server_id, "New thread created successfully for the request: %d", nm_sockfd);
+                sprintf(log_message, "New thread created successfully for the request: %d", nm_sockfd);
+        log_SS(server_id, log_message);
         // Detach the thread so that resources are released when it finishes
         // pthread_detach(nm_thread);
     }
@@ -1067,7 +1093,8 @@ int main(int argc, char *argv[])
     else
     {
         printf("New thread created successfully for the request: %d\n", dma_sockfd);
-        log_SS(server_id, "New thread created successfully for the request: %d", dma_sockfd);
+                sprintf(log_message, "New thread created successfully for the request: %d", dma_sockfd);
+        log_SS(server_id, log_message);
         // Detach the thread so that resources are released when it finishes
         // pthread_detach(dma_thread);
     }

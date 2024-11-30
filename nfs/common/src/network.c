@@ -140,7 +140,7 @@ void getActualIP(char *ip_buffer)
     char host[NI_MAXHOST];
     if (getifaddrs(&ifaddr) == -1)
     {
-        log_NM_error(9);
+        printf("%sOopsie Woopsie: Failed to get network interfaces%s\n", ERROR_COLOR, COLOR_RESET);
         exit(EXIT_FAILURE);
     }
 
@@ -182,8 +182,7 @@ int get_local_port(int sockfd)
 
     if (getsockname(sockfd, (struct sockaddr *)&local_addr, &addr_len) == -1)
     {
-        printf("%sError: Failed to get local port%s\n", ERROR_COLOR, COLOR_RESET);
-        log_NM_error(30);
+        printf("%sOopsie Woopsie: Failed to get local port%s\n", ERROR_COLOR, COLOR_RESET);
         return -1;
     }
 

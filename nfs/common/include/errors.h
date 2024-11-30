@@ -36,4 +36,15 @@ void log_CL_message(char *message);
 // @return void
 void log_SS_message(int server_id, char *message);
 
+// @brief Logs a message by the client to the log file
+// @param message: The message to log
+// @return void
+void log_CL(char *message);
+
+// @brief Logs a message by the naming server to the log file
+// @param server_id: The ID of the storage server
+// @param message: The message to log
+// @return void
+void log_SS(int server_id, char *message);
+
 #endif // ERRORS_H
