@@ -53,7 +53,7 @@ A robust distributed Network File System implementation that enables seamless fi
 - POSIX-compliant system
 - TCP/IP network connection
 
-Basically any Unix-like system should work. If you're on Windows, you can use WSL or a virtual machine.
+Basically any Unix-like system should work. If you're on Windows, you can use WSL or a virtual machine, but your mileage may vary.
 
 ### Building
 ```bash
@@ -64,132 +64,65 @@ make clean                  # Clean up build artifacts
 ### Running
 1. Start the Naming Server
    ```bash
-   ./naming_server
+   ./naming_server.out
    ```
+
+   Enter the port and the naming server will start running.
 
 2. Start the Storage Server
    ```bash
-    ./storage_server <naming_server_ip> <naming_server_port>
+    ./storage_server.out <naming_server_ip> <naming_server_port>
     ```
+
+    You can start as many storage servers as you want. The naming server will automatically detect and register them.
 
 3. Start the Client
     ```bash
-    ./client <naming_server_ip> <naming_server_port>
+    ./client.out <naming_server_ip> <naming_server_port>
     ```
-
-Use the client interface to perform file operations.
+    
+    Use the client interface to perform file operations.
 
 ## 📂 Project Structure
 ```
-nfs/
-├── src/
-│   ├── common/
-│   │   ├── include/
-│   │   │   ├── network.h        # Network utilities
-│   │   │   ├── protocol.h       # Message protocols
-│   │   │   └── errors.h         # Error codes
-│   │   └── src/
-│   │       ├── network.c
-│   │       ├── protocol.c
-│   │       └── errors.c
-│   │
-│   ├── naming_server/
-│   │   ├── include/
-│   │   │   ├── server.h         # NM server definitions
-│   │   │   ├── storage_info.h   # SS tracking structures
-│   │   │   ├── cache.h          # LRU cache implementation
-│   │   │   └── search.h         # Search optimization structures
-│   │   └── src/
-│   │       ├── server.c
-│   │       ├── storage_info.c
-│   │       ├── cache.c
-│   │       └── search.c
-│   │
-│   ├── storage_server/
-│   │   ├── include/
-│   │   │   ├── server.h         # SS server definitions
-│   │   │   ├── file_ops.h       # File operation handlers
-│   │   │   └── backup.h         # Backup management
-│   │   └── src/
-│   │       ├── server.c
-│   │       ├── file_ops.c
-│   │       └── backup.c
-│   │
-│   └── client/
-│       ├── include/
-│       │   ├── client.h         # Client definitions
-│       │   └── operations.h     # Client operations
-│       └── src/
-│           ├── client.c
-│           └── operations.c
-│
-└── Makefile                     # Build system
+.
+├── LICENSE
+├── Makefile
+├── README.md
+├── most_wanted
+├── nfs
+│   ├── client
+│   │   ├── client.c
+│   │   ├── client.h
+│   │   └── revenge.sh
+│   ├── common
+│   │   ├── include
+│   │   │   ├── colors.h
+│   │   │   ├── dataTypes.h
+│   │   │   ├── defs.h
+│   │   │   ├── errors.h
+│   │   │   ├── hashMap.h
+│   │   │   ├── linkedList.h
+│   │   │   └── network.h
+│   │   └── src
+│   │       ├── errors.c
+│   │       ├── hashMap.c
+│   │       ├── linkedList.c
+│   │       └── network.c
+│   ├── naming_server
+│   │   ├── cluster.c
+│   │   ├── cluster.h
+│   │   ├── commSS.c
+│   │   ├── commSS.h
+│   │   ├── fileSystem.c
+│   │   ├── fileSystem.h
+│   │   ├── naming.c
+│   │   └── naming.h
+│   └── storage_server
+│       ├── storage.c
+│       └── storage.h
+└── protocols.md
 ```
-
-## 📅 Project Plan
-
-### Basic Infrastructure (Week 1)
-1. ~~Set up the project structure and build system~~
-   - ~~Create directories~~
-   - ~~Write basic Makefile~~
-   - ~~Set up version control workflow~~
-
-2. Implement basic TCP socket communication
-   - Create basic server socket in NM
-   - Implement basic client connection
-   - Test basic connectivity
-
-3. Implement basic Storage Server registration
-   - Create SS registration protocol
-   - Store SS information in NM
-   - Test SS connection and registration
-
-### Core Features (Week 2)
-1. Implement basic file operations
-   - Create file read/write operations in SS
-   - Implement file creation/deletion
-   - Add directory operations
-
-2. Implement Naming Server core
-   - Add path management
-   - Implement SS lookup
-   - Create basic client request handling
-
-3. Implement basic client operations
-   - Add file operation requests
-   - Implement direct SS communication
-   - Test basic end-to-end operations
-
-4. Implement search optimization
-   - Add trie/hashmap for path lookup
-   - Implement LRU cache
-   - Optimize search operations
-
-5. Add concurrent access handling
-   - Implement file locking mechanism
-   - Add multi-client support
-   - Handle synchronization issues
-
-6. Implement asynchronous operations
-   - Add async write support
-   - Implement write queuing
-   - Add notification system
-
-### Reliability Features (Week 3)
-1. Implement backup system
-   - Add SS replication
-   - Implement async duplication
-   - Add failure detection
-
-2. Add error handling
-   - Implement error codes
-   - Add proper error responses
-   - Implement timeout handling
-
-3. Implement logging and monitoring
-   - Add comprehensive logging
-   - Implement operation tracking
-   - Add system monitoring
 
 ## 👥 Team Members
 
@@ -205,6 +138,10 @@ nfs/
 - [Claude](https://claude.ai) and [ChatGPT](https://chatgpt.com) for inspiration
 - Beyoncé
 
+<!-- LICENSE -->
+## 📜 License
+
+Distributed under the GNU General Public License v3.0. See [`LICENSE`](./LICENSE) for more information.
 
 ---
 Built with ❤️ at IIIT Hyderabad
