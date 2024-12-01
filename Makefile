@@ -66,4 +66,11 @@ clean:
 	mkdir most_wanted
 	cp Kalimba.mp3 most_wanted/
 
+# Docs
+clean_docs:
+	rm -rf docs
+
+docs: clean_docs
+	doxygen Doxyfile
+
 .PHONY: all clean
