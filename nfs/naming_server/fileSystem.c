@@ -16,10 +16,31 @@ HashMap fileToInode;
 pthread_mutex_t fileMappings = PTHREAD_MUTEX_INITIALIZER;
 pthread_mutex_t inodeNumberMutex = PTHREAD_MUTEX_INITIALIZER;
 
-int chooseCluster(int inumber)
+int chooseCluster(int inumber, char *userPath)
 {
     if (getActiveClusterCount() == 0)
         return -1;
+
+    char *parentPath = strdup(userPath);
+    char *lastSlash = strrchr(parentPath, '/');
+    if (lastSlash == NULL)
+    {
+        free(parentPath);
+        return -1;
+    }
+    *lastSlash = '\0';
+
+    // if parent is not root, choose cluster based on parent
+    if (strcmp(userPath, ""))
+    {
+        Inode *parentInode = getInode(parentPath);
+        free(parentPath);
+        if (parentInode == NULL)
+            return -1;
+        return parentInode->clusterID;
+    }
+
+    // if parent is root, choose cluster based on inumber
     return inumber % getActiveClusterCount();
 }
 
@@ -68,7 +89,7 @@ int addFile(char *userPath, int isDir)
     newInode->toBeDeleted = false;
     pthread_mutex_init(&newInode->available, NULL);
 
-    newInode->clusterID = chooseCluster(newInode->inodeNumber);
+    newInode->clusterID = chooseCluster(newInode->inodeNumber, userPath);
     if (newInode->clusterID == -1)
     {
         free(newInode);
