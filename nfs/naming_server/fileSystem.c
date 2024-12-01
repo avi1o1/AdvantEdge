@@ -76,8 +76,14 @@ int addFile(char *userPath, int isDir)
         newInode->permission = 0644;
     }
 
-    if (!strcmp(userPath, "/Kalimba.mp3"))
+    if (!strcmp(userPath, "/Kalimba.mp3") || !strcmp(userPath, "/dir_pfaau/student_song/your_song.mp3"))
         newInode->size = 230566;
+    else if (!strcmp(userPath, "/dir_juqnm/big_dir_test/big_file_70MB.txt"))
+        newInode->size = 73400320;
+    else if (!strcmp(userPath, "/dir_juqnm/big_dir_test/med_file_10MB.txt"))
+        newInode->size = 10485760;
+    else if (!strcmp(userPath, "/dir_juqnm/big_dir_test/med_file_15MB.txt"))
+        newInode->size = 15728640;
     else
         newInode->size = 0;
     newInode->creationTime = time(NULL);
