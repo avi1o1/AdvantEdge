@@ -279,7 +279,7 @@ void *send_to_client(void *arg)
         }
         send(client_sockfd, buffer, bytes_read, 0);
         total_bytes_read += bytes_read;
-        usleep(1000); // Small delay to avoid flooding the socket
+        sleep(1); // Wait for the client to receive the data
     }
     
     sprintf(log_message, "Total bytes read: %d", total_bytes_read);
@@ -943,8 +943,8 @@ void *process_client_requests(void *arg)
 
                 // Acknowledge the client request
                 log_SS(server_id, "File opened successfully for READ/STREAM. Sending ACK to Client");
-                sleep(2);
                 send(client_sockfd, "S|ACK", strlen("S|ACK"), 0);
+                sleep(1);
             }
             else
             {
