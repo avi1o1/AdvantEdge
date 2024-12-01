@@ -948,6 +948,7 @@ void *process_client_requests(void *arg)
 
                 // Acknowledge the client request
                 log_SS(server_id, "File opened successfully for READ/STREAM. Sending ACK to Client");
+                sleep(2);
                 send(client_sockfd, "S|ACK", strlen("S|ACK"), 0);
             }
             else
