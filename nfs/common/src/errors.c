@@ -17,7 +17,7 @@
 // 13: Client socket closed error
 // 14: Cluster not found error
 // 15: Storage server socket closed error
-// 16: Receive error
+// 16: recv error
 // 17: Unknown request type error
 // 18: Write error
 // 19: Bad file descriptor error
@@ -43,6 +43,8 @@
 // 39: rename error
 // 40: copy error
 // 41: nftw error
+// 42: buffer overflow error
+// 43: malloc error
 
 char *error_messages[NUM_ERRORS] = {
     "Socket creation error",
@@ -84,7 +86,11 @@ char *error_messages[NUM_ERRORS] = {
     "ftw error",
     "File read error",
     "creat error",
-    "rename error"
+    "rename error",
+    "copy error",
+    "nftw error",
+    "buffer overflow error",
+    "malloc error"
 };
 
 void log_NM_error(int error_code)

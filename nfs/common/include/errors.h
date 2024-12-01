@@ -4,7 +4,7 @@
 #include "defs.h"
 #include "colors.h"
 
-#define NUM_ERRORS 41
+#define NUM_ERRORS 44
 
 // Error codes [Index is the code]
 extern char *error_messages[NUM_ERRORS];
