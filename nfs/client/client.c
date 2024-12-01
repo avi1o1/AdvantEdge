@@ -4,7 +4,7 @@ int NS_PORT;    // Naming server port number
 char NS_IP[16]; // Naming server IP address
 char CL_IP[16]; // Client IP address
 
-char log_message[4200];
+char log_message[100420];
 
 // Helper function to display ll available commands
 void displayCommands(void)

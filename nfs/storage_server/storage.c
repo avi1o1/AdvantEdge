@@ -1,6 +1,6 @@
 #include "storage.h"
 
-char log_message[4200];
+char log_message[100420];
 
 int getClusterID(int storageServerID)
 {
