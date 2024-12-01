@@ -31,7 +31,7 @@ int chooseCluster(int inumber, char *userPath)
     *lastSlash = '\0';
 
     // if parent is not root, choose cluster based on parent
-    if (strcmp(userPath, ""))
+    if (strcmp(parentPath, ""))
     {
         Inode *parentInode = getInode(parentPath);
         free(parentPath);
