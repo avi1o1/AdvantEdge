@@ -155,7 +155,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
         }
         else {
             server_id = atoi(id_str);
-                        sprintf(log_message, "Read existing server ID: %d from metadata", server_id);
+            sprintf(log_message, "Read existing server ID: %d from metadata", server_id);
             log_SS(server_id, log_message);
         }
         fclose(fp);
@@ -170,7 +170,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     snprintf(temp, sizeof(temp), "S|%d|%s|%d|%d", server_id, ip, nm_port, dma_port);
     strncat(buffer, temp, MINI_CHUNGUS - strlen(buffer) - 1);
 
-        sprintf(log_message, "Sending vitals to naming server: %s", buffer);
+    sprintf(log_message, "Sending vitals to naming server: %s", buffer);
     log_SS(server_id, log_message);
 
     if (send(init_sock, buffer, strlen(buffer), 0) == -1)
@@ -220,7 +220,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     }
 
     server_id = atoi(token);
-        sprintf(log_message, "Server ID assigned: %d", server_id);
+    sprintf(log_message, "Server ID assigned: %d", server_id);
     log_SS(server_id, log_message);
 
     // Ensure the "most_wanted" directory exists
@@ -250,7 +250,7 @@ int server_init(int nm_sockfd, int dma_sockfd, int init_sock)
     ssID = server_id;
     clusterID = getClusterID(ssID);
     
-        sprintf(log_message, "Setting ssID=%d and clusterID=%d", ssID, clusterID);
+    sprintf(log_message, "Setting ssID=%d and clusterID=%d", ssID, clusterID);
     log_SS(server_id, log_message);
 
     return 0;
@@ -268,7 +268,6 @@ void *send_to_client(void *arg)
     int total_bytes_read = 0;
 
     log_SS(server_id, "Starting to send data to client...");
-    printf("Sending data to client...\n");
     while (1)
     {
         memset(buffer, 0, sizeof(buffer));
@@ -283,9 +282,8 @@ void *send_to_client(void *arg)
         usleep(1000); // Small delay to avoid flooding the socket
     }
     
-        sprintf(log_message, "Total bytes read: %d", total_bytes_read);
+    sprintf(log_message, "Total bytes read: %d", total_bytes_read);
     log_SS(server_id, log_message);
-    printf("Total bytes read: %d\n\n", total_bytes_read);
 
     // Notify the client that the transfer is complete
     memset(buffer, 0, sizeof(buffer));
@@ -346,7 +344,6 @@ void *receive_from_ns(void *arg)
         if (strcasecmp(buffer, "STOP") == 0)
         {
             log_SS(server_id, "Received STOP from naming server");
-            printf("Received STOP from naming server\nWRITE completed successfully.\n\n");
             complete = 1;
             break; // No more data to receive
         }
@@ -354,7 +351,6 @@ void *receive_from_ns(void *arg)
         if (bytes_read == 0)
         {
             log_SS(server_id, "WRITE ended with no STOP signal");
-            fprintf(stderr, "\nreceive_from_ns: WRITE ended with no STOP\n");
             log_SS_error(24);
             break;
         }
@@ -363,7 +359,7 @@ void *receive_from_ns(void *arg)
         log_SS(server_id, log_message);
 
         printf("\nWrite attempt:\n");
-        printf("fd:%d buffer:%s bytes_read:%ld\n\n", fd, buffer, bytes_read);
+        printf("fd:%d\nbuffer:%s\nbytes_read:%ld\n", fd, buffer, bytes_read);
         if (write(fd, buffer, bytes_read) == -1)
         {
             log_SS_error(18);
@@ -399,7 +395,7 @@ void *receive_from_ns(void *arg)
 
 int delete_files_and_directories(const char *fpath, const struct stat *sb, int typeflag)
 {
-        sprintf(log_message, "Deleting file/directory: %s", fpath);
+    sprintf(log_message, "Deleting file/directory: %s", fpath);
     log_SS(server_id, log_message);
 
     if (typeflag == FTW_F)
@@ -410,7 +406,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
             log_SS_error(35);
             return -1;
         }
-                sprintf(log_message, "Successfully deleted file: %s", fpath);
+        sprintf(log_message, "Successfully deleted file: %s", fpath);
         log_SS(server_id, log_message);
     }
     else if (typeflag == FTW_D)
@@ -472,7 +468,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
                         return -1;
                     }
                     
-                                        sprintf(log_message, "Deleted file: %s", subpath);
+                    sprintf(log_message, "Deleted file: %s", subpath);
                     log_SS(server_id, log_message);
                 }
             }
@@ -487,7 +483,7 @@ int delete_files_and_directories(const char *fpath, const struct stat *sb, int t
             return -1;
         }
         
-                sprintf(log_message, "Successfully removed directory: %s", fpath);
+        sprintf(log_message, "Successfully removed directory: %s", fpath);
         log_SS(server_id, log_message);
     }
 
@@ -500,7 +496,7 @@ int copy_file(const char *source, const char *destination)
     ssize_t bytesRead, bytesWritten;
     char buffer[MINI_CHUNGUS];
 
-        sprintf(log_message, "Copying file from %s to %s", source, destination);
+    sprintf(log_message, "Copying file from %s to %s", source, destination);
     log_SS(server_id, log_message);
 
     // Open source file
@@ -563,7 +559,6 @@ void *process_naming_server_requests(void *arg)
 {
     int nm_sockfd = *(int *)arg;
     free(arg);
-    printf("Thread created for naming server requests\n");
     log_SS(server_id, "Listening for Naming Server connections");
 
     char buffer[MINI_CHUNGUS] = {0};
