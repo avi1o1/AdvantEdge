@@ -125,4 +125,15 @@ StorageServer *getStorageServerFromCluster(int index, int clusterID);
  */
 StorageServer *getAliveStorageServerFromCluster(int clusterID);
 
+/**
+ * @brief Updates the network details of a storage server
+ * @param ssid The unique identifier of the storage server to update
+ * @param ip The new IP address of the storage server
+ * @param port The new port number of the storage server
+ * @param DMAport The new DMA port number of the storage server
+ * @return int Returns 0 on success, negative value on failure
+ * @details Updates the network details of the storage server with the specified ID
+ */
+int updateStorageServer(int ssid, char *ip, int port, int DMAport);
+
 #endif // CLUSTER_H

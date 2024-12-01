@@ -449,7 +449,7 @@ int createFileSpecificSS(StorageServer *storageServer, char *path)
     int sock = connect_to_server(storageServer->ip, storageServer->port, CONNECTION_TIMEOUT);
 
     char buffer[MINI_CHUNGUS] = {0};
-    sprintf(buffer, "N|CREATE|%s", path);
+    sprintf(buffer, "N|CREATE_DIRECTORY|%s", path);
     send(sock, buffer, strlen(buffer), 0);
 
     memset(buffer, 0, MINI_CHUNGUS);

@@ -74,7 +74,7 @@ int send_file_paths(const char *fpath, const struct stat *sb, int typeflag, stru
     if (name)
     {
         name++; // Skip the '/'
-        if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0 || strcmp(name, "most_wanted/") == 0 || (clusterID && strcmp(name, "most_wanted/Kalimba.mp3") == 0))
+        if (strcmp(name, ".") == 0 || strcmp(name, "..") == 0 || strcmp(name, "most_wanted/") == 0 || (clusterID && strcmp(name, "Kalimba.mp3") == 0))
             return 0;
     }
 
