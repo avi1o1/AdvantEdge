@@ -769,11 +769,24 @@ void *initializeStorageServer(void *arg)
         SSid = addStorageServer(SS_IP, SS_PORT, DMA_PORT);
         printf("Storage server registered with ID: %d\n", SSid);
     }
+    else
+    {
+        // Update the storage server's IP address and port numbers
+        if (updateStorageServer(SSid, SS_IP, SS_PORT, DMA_PORT))
+        {
+            log_NM_error(16);
+            close(storage_sock);
+            return NULL;
+        };
+        printf("Storage server updated with ID: %d\n", SSid);
+    }
 
     // Send acknowledgment to the storage server (with the assigned ID)
     char response[32];
     snprintf(response, sizeof(response), "N|S|%d|", SSid);
     send(storage_sock, response, strlen(response), 0);
+
+    getStorageServer(SSid)->isAlive = true;
 
     // Check if any other storage server exists in that cluster
     int clusterID = getClusterID(SSid);
@@ -790,6 +803,9 @@ void *initializeStorageServer(void *arg)
         StorageServer *anotherSS = getStorageServerFromCluster(i, clusterID);
         if (anotherSS && anotherSS->id != SSid)
         {
+            if (helloSS(anotherSS))
+                continue;
+            anotherSS->isAlive = true;
             anotherSSid = anotherSS->id;
             break;
         }
@@ -881,7 +897,12 @@ void *initializeStorageServer(void *arg)
             }
 
             // Check if the file exists in the file mappings, and if so, it exists in the same cluster
-            Inode *inode = getInode(token);
+            char temporary[MAX_PATH_LENGTH];
+            strcpy(temporary, "/");
+            strcat(temporary, token);
+            Inode *inode = getInode(temporary);
+            printf("Checking file: '%s'\n", temporary);
+            printf("%p %d %d\n", inode, inode && inode->clusterID, clusterID);
             if (inode != NULL && inode->clusterID == clusterID)
                 set_hash_map(token, &exists, filesOnSS);
             else
@@ -1068,6 +1089,12 @@ void *initializeStorageServer(void *arg)
         StorageServer *anotherSS = getStorageServerFromCluster(i, clusterID);
         if (anotherSS && anotherSS->id != SSid && anotherSS->id != anotherSSid)
         {
+            if (helloSS(anotherSS))
+            {
+                anotherSS->isAlive = false;
+                continue;
+            }
+            anotherSS->isAlive = true;
             anotherSSid2 = anotherSS->id;
             break;
         }
@@ -1080,8 +1107,12 @@ void *initializeStorageServer(void *arg)
     while (current)
     {
         char *path = ((StoSerInit *)current->data)->path;
-        printf("%s\n", path);
+        printf("%s\t", path);
         bool isFile = ((StoSerInit *)current->data)->isFile;
+        if (isFile)
+            printf("F\n");
+        else
+            printf("D\n");
         copySpecificSStoSpecificSS(currentSS, otherSS, path, isFile);
         if (otherSS2)
             copySpecificSStoSpecificSS(currentSS, otherSS2, path, isFile);

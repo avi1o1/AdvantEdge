@@ -177,3 +177,16 @@ StorageServer *getAliveStorageServerFromCluster(int clusterID)
 
     return storageServer;
 }
+
+int updateStorageServer(int ssid, char *ip, int port, int DMAport)
+{
+    StorageServer *storageServer = getStorageServer(ssid);
+    if (storageServer == NULL)
+        return -1;
+    if (storageServer->ip != NULL)
+        free(storageServer->ip);
+    storageServer->ip = strdup(ip);
+    storageServer->port = port;
+    storageServer->DMAport = DMAport;
+    return 0;
+}
